@@ -1,13 +1,13 @@
 name = "weak-simplex-conjecture-lean"
 version = "0.1.0"
-keywords = ["math"]
+keywords = ["math", "probability", "gaussian", "formalization"]
 defaultTargets = ["WeakSimplexConjectureLean"]
 
 [leanOptions]
-pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+autoImplicit = false
 relaxedAutoImplicit = false
+pp.unicode.fun = true
 weak.linter.mathlibStandardSet = true
-maxSynthPendingDepth = 3
 
 [[require]]
 name = "mathlib"

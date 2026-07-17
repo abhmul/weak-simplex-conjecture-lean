@@ -1,1 +1,7 @@
 /.lake
+
+# Machine-local links to personal agent-vault skills.
+/.agents/skills/checkpoint
+/.agents/skills/web-discovery
+/.claude/skills/checkpoint
+/.claude/skills/web-discovery
