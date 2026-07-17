@@ -1,0 +1,6 @@
+interface:
+  display_name: "Weak Simplex Lean Formalization"
+  short_description: "Execute one audited work package from the matrix-first Lean plan"
+  default_prompt: "Execute the specified weak-simplex Lean work package and return a compiled, axiom-audited handoff."
+policy:
+  allow_implicit_invocation: false

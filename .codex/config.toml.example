@@ -1,0 +1,34 @@
+# Copy this table into a project-scoped `.codex/config.toml` or `~/.codex/config.toml`.
+# Codex loads project-scoped configuration only after the checkout is trusted.
+# Replace every absolute path. Do not use `~`: Codex does not shell-expand it for `cwd`.
+
+[mcp_servers.lean-lsp]
+command = "/ABSOLUTE/PATH/TO/uvx"
+args = [
+  "--from",
+  "lean-lsp-mcp==0.28.1",
+  "lean-lsp-mcp",
+  "--transport",
+  "stdio",
+  "--lean-project-path",
+  "/ABSOLUTE/PATH/TO/weak-simplex-conjecture-lean",
+]
+cwd = "/ABSOLUTE/PATH/TO/weak-simplex-conjecture-lean"
+enabled = true
+required = true
+startup_timeout_sec = 30
+tool_timeout_sec = 180
+default_tools_approval_mode = "approve"
+enabled_tools = [
+  "lean_goal",
+  "lean_hover_info",
+  "lean_local_search",
+  "lean_leanfinder",
+  "lean_leansearch",
+  "lean_loogle",
+  "lean_hammer_premise",
+  "lean_state_search",
+  "lean_multi_attempt",
+  "lean_diagnostic_messages",
+  "lean_code_actions",
+]
