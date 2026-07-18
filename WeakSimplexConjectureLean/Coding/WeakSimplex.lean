@@ -105,4 +105,29 @@ theorem weak_simplex
   exact bayesValue_le_regularSimplex
     (Nat.succ_lt_succ hn) code simplex hunit hsimplex lam hlam
 
+/-- Operational weak-simplex theorem for arbitrary measurable score-maximizing
+tie-breaking rules. -/
+theorem weak_simplex_of_scoreMaximizingDecoders
+    {n : ℕ} (hn : 0 < n)
+    (code simplex : Fin (n + 1) → Coord n)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram (n + 1))
+    (lam : ℝ) (hlam : 0 ≤ lam)
+    (decoder simplexDecoder : Coord n → Fin (n + 1))
+    (hdecoder_meas : Measurable decoder)
+    (hdecoder_max : IsScoreMaximizingDecoder code decoder)
+    (hsimplexDecoder_meas : Measurable simplexDecoder)
+    (hsimplexDecoder_max : IsScoreMaximizingDecoder simplex simplexDecoder) :
+    decoderSuccessOf code lam decoder ≤
+      decoderSuccessOf simplex lam simplexDecoder := by
+  have hsimplexUnit :=
+    unit_norm_of_codeGram_eq_regularSimplexGram (Nat.succ_lt_succ hn) simplex hsimplex
+  rw [decoderSuccessOf_eq_bayesValue (Nat.succ_pos n) code lam decoder
+      hdecoder_meas (hdecoder_max.isLikelihoodMaximizing hunit hlam),
+    decoderSuccessOf_eq_bayesValue (Nat.succ_pos n) simplex lam simplexDecoder
+      hsimplexDecoder_meas
+      (hsimplexDecoder_max.isLikelihoodMaximizing hsimplexUnit hlam)]
+  exact bayesValue_le_regularSimplex
+    (Nat.succ_lt_succ hn) code simplex hunit hsimplex lam hlam
+
 end WeakSimplex

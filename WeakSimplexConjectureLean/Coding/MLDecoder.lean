@@ -83,33 +83,37 @@ private theorem measurable_firstMaximizer
     MeasurableSet.iInter fun j ↦ MeasurableSet.iInter fun _ ↦
       (measurableSet_isScoreMaximizer score hscore j).compl
 
-private theorem sum_withDensity_firstMaximizer_eq_integral_max
+private theorem sum_withDensity_decoder_eq_integral_max
     [MeasurableSpace X] {m : ℕ} (hm : 0 < m) (score : Fin m → X → ℝ)
     (hscore : ∀ i, Measurable (score i)) (hnonneg : ∀ i x, 0 ≤ score i x)
+    (decoder : X → Fin m) (hdecoder : Measurable decoder)
+    (hmax : ∀ x j, score j x ≤ score (decoder x) x)
     (mu : Measure X) (hscore_int : ∀ i, Integrable (score i) mu) :
     ∑ i, ((mu.withDensity fun x ↦ ENNReal.ofReal (score i x))
-          {x | firstMaximizer hm score x = i}).toReal =
+          {x | decoder x = i}).toReal =
       ∫ x, finiteScoreMax hm score x ∂mu := by
   classical
-  have hdecoder : Measurable (firstMaximizer hm score) :=
-    measurable_firstMaximizer hm score hscore
-  have hcell : ∀ i, MeasurableSet {x | firstMaximizer hm score x = i} := by
+  have hcell : ∀ i, MeasurableSet {x | decoder x = i} := by
     intro i
-    rw [show {x | firstMaximizer hm score x = i} =
-        firstMaximizer hm score ⁻¹' {i} by
+    rw [show {x | decoder x = i} = decoder ⁻¹' {i} by
       ext x
       simp only [Set.mem_setOf_eq, Set.mem_preimage, Set.mem_singleton_iff]]
     exact hdecoder (measurableSet_singleton i)
+  have hselected (x : X) :
+      score (decoder x) x = finiteScoreMax hm score x := by
+    apply le_antisymm
+    · exact Finset.le_sup' (fun i : Fin m ↦ score i x) (Finset.mem_univ (decoder x))
+    · exact Finset.sup'_le _ _ fun i _ ↦ hmax x i
   calc
     ∑ i, ((mu.withDensity fun x ↦ ENNReal.ofReal (score i x))
-          {x | firstMaximizer hm score x = i}).toReal =
-        ∑ i, ∫ x in {x | firstMaximizer hm score x = i}, score i x ∂mu := by
+          {x | decoder x = i}).toReal =
+        ∑ i, ∫ x in {x | decoder x = i}, score i x ∂mu := by
       apply Finset.sum_congr rfl
       intro i _
       rw [show ((mu.withDensity fun x ↦ ENNReal.ofReal (score i x))
-          {x | firstMaximizer hm score x = i}).toReal =
+          {x | decoder x = i}).toReal =
           (mu.withDensity fun x ↦ ENNReal.ofReal (score i x)).real
-            {x | firstMaximizer hm score x = i} by rfl,
+            {x | decoder x = i} by rfl,
         ← setIntegral_one_eq_measureReal,
         setIntegral_withDensity_eq_setIntegral_toReal_smul]
       · apply integral_congr_ae
@@ -118,19 +122,19 @@ private theorem sum_withDensity_firstMaximizer_eq_integral_max
       · exact (hscore i).ennreal_ofReal
       · exact ae_of_all _ fun _ ↦ ENNReal.ofReal_lt_top
       · exact hcell i
-    _ = ∑ i, ∫ x, {x | firstMaximizer hm score x = i}.indicator (score i) x ∂mu := by
+    _ = ∑ i, ∫ x, {x | decoder x = i}.indicator (score i) x ∂mu := by
       apply Finset.sum_congr rfl
       intro i _
       exact (integral_indicator (hcell i)).symm
-    _ = ∫ x, ∑ i, {x | firstMaximizer hm score x = i}.indicator (score i) x ∂mu := by
+    _ = ∫ x, ∑ i, {x | decoder x = i}.indicator (score i) x ∂mu := by
       rw [integral_finsetSum]
       intro i _
       exact (hscore_int i).integrableOn.integrable_indicator (hcell i)
     _ = ∫ x, finiteScoreMax hm score x ∂mu := by
       apply integral_congr_ae
       filter_upwards with x
-      rw [Finset.sum_eq_single (firstMaximizer hm score x)]
-      · simp only [Set.mem_setOf_eq, Set.indicator_of_mem, score_firstMaximizer_eq_max]
+      rw [Finset.sum_eq_single (decoder x)]
+      · simp only [Set.mem_setOf_eq, Set.indicator_of_mem, hselected]
       · intro i _ hi
         rw [Set.indicator_of_notMem]
         exact Ne.symm hi
@@ -140,6 +144,29 @@ end FiniteSelector
 
 open ProbabilityTheory
 open scoped ENNReal InnerProductSpace
+
+/-- A decoder that always selects a class of maximum likelihood. -/
+def IsLikelihoodMaximizingDecoder
+    {m n : ℕ} (code : Fin m → Coord n) (lam : ℝ) (decoder : Coord n → Fin m) : Prop :=
+  ∀ y j, classLikelihood code lam j y ≤ classLikelihood code lam (decoder y) y
+
+/-- A decoder that always selects a class of maximum inner-product score. -/
+def IsScoreMaximizingDecoder
+    {m n : ℕ} (code : Fin m → Coord n) (decoder : Coord n → Fin m) : Prop :=
+  ∀ y j, ⟪code j, y⟫_ℝ ≤ ⟪code (decoder y), y⟫_ℝ
+
+/-- For equal-energy codewords and nonnegative signal strength, maximizing the inner-product score
+also maximizes the class likelihood. -/
+theorem IsScoreMaximizingDecoder.isLikelihoodMaximizing
+    {m n : ℕ} {code : Fin m → Coord n} {decoder : Coord n → Fin m}
+    (hscore : IsScoreMaximizingDecoder code decoder)
+    (hunit : ∀ i, ‖code i‖ = 1) {lam : ℝ} (hlam : 0 ≤ lam) :
+    IsLikelihoodMaximizingDecoder code lam decoder := by
+  intro y j
+  rw [classLikelihood_eq_exp_score, classLikelihood_eq_exp_score]
+  apply Real.exp_le_exp.mpr
+  simpa only [hunit, one_pow, mul_one] using
+    sub_le_sub_right (mul_le_mul_of_nonneg_left (hscore y j) hlam) (lam ^ 2 / 2)
 
 /-- The deterministic least-index maximum-likelihood decoder. -/
 def mlDecoder
@@ -216,40 +243,69 @@ private theorem integrable_classLikelihood_local
   rw [← hrho_toReal]
   exact hrho_int
 
+/-- Uniform-prior shifted-class success expression. It is an operational probability when the
+decoder is measurable. -/
+def decoderSuccessOf
+    {m n : ℕ} (code : Fin m → Coord n) (lam : ℝ) (decoder : Coord n → Fin m) : ℝ :=
+  (1 / (m : ℝ)) *
+    ∑ i, (multivariateGaussian (lam • code i) (1 : Matrix (Fin n) (Fin n) ℝ)
+      {y | decoder y = i}).toReal
+
 /-- Uniform-prior success probability of the deterministic ML decoder under shifted classes. -/
 def decoderSuccess
     {m n : ℕ} (hm : 0 < m) (code : Fin m → Coord n) (lam : ℝ) : ℝ :=
-  (1 / (m : ℝ)) *
-    ∑ i, (multivariateGaussian (lam • code i) (1 : Matrix (Fin n) (Fin n) ℝ)
-      {y | mlDecoder hm code lam y = i}).toReal
+  decoderSuccessOf code lam (mlDecoder hm code lam)
 
-/-- The tie-safe operational ML success equals the density-maximum Bayes value. -/
-theorem mlDecoder_success_eq_bayesValue
-    {m n : ℕ} (hm : 0 < m) (code : Fin m → Coord n) (lam : ℝ) :
-    decoderSuccess hm code lam = bayesValue hm code lam := by
-  have hpartition := sum_withDensity_firstMaximizer_eq_integral_max
+/-- Every measurable maximum-likelihood decoder has the Bayes value, independently of how it
+breaks ties. -/
+theorem decoderSuccessOf_eq_bayesValue
+    {m n : ℕ} (hm : 0 < m) (code : Fin m → Coord n) (lam : ℝ)
+    (decoder : Coord n → Fin m) (hdecoder : Measurable decoder)
+    (hmax : IsLikelihoodMaximizingDecoder code lam decoder) :
+    decoderSuccessOf code lam decoder = bayesValue hm code lam := by
+  have hpartition := sum_withDensity_decoder_eq_integral_max
     hm (classLikelihood code lam)
     (fun i ↦ measurable_classLikelihood_local code lam i)
     (fun _ _ ↦ Real.exp_nonneg _)
+    decoder hdecoder hmax
     (stdGaussian (Coord n))
     (fun i ↦ integrable_classLikelihood_local code lam i)
   have hpartition' :
       ∑ i, (((stdGaussian (Coord n)).withDensity
             fun y ↦ ENNReal.ofReal (classLikelihood code lam i y))
-          {y | mlDecoder hm code lam y = i}).toReal =
+          {y | decoder y = i}).toReal =
         ∫ y, classLikelihoodMax hm code lam y ∂stdGaussian (Coord n) := by
-    simpa only [mlDecoder, finiteScoreMax, classLikelihoodMax] using hpartition
-  unfold decoderSuccess bayesValue
+    simpa only [finiteScoreMax, classLikelihoodMax] using hpartition
+  unfold decoderSuccessOf bayesValue
   congr 1
   calc
     ∑ i, (multivariateGaussian (lam • code i) (1 : Matrix (Fin n) (Fin n) ℝ)
-          {y | mlDecoder hm code lam y = i}).toReal =
+          {y | decoder y = i}).toReal =
         ∑ i, (((stdGaussian (Coord n)).withDensity
               fun y ↦ ENNReal.ofReal (classLikelihood code lam i y))
-            {y | mlDecoder hm code lam y = i}).toReal := by
+            {y | decoder y = i}).toReal := by
       apply Finset.sum_congr rfl
       intro i _
       rw [stdGaussian_withDensity_classLikelihood code lam i]
     _ = ∫ y, classLikelihoodMax hm code lam y ∂stdGaussian (Coord n) := hpartition'
+
+/-- Any two measurable maximum-likelihood decoders have the same uniform-prior success. -/
+theorem decoderSuccessOf_eq_of_isLikelihoodMaximizing
+    {m n : ℕ} (hm : 0 < m) (code : Fin m → Coord n) (lam : ℝ)
+    (decoder₁ decoder₂ : Coord n → Fin m)
+    (hdecoder₁ : Measurable decoder₁)
+    (hmax₁ : IsLikelihoodMaximizingDecoder code lam decoder₁)
+    (hdecoder₂ : Measurable decoder₂)
+    (hmax₂ : IsLikelihoodMaximizingDecoder code lam decoder₂) :
+    decoderSuccessOf code lam decoder₁ = decoderSuccessOf code lam decoder₂ := by
+  rw [decoderSuccessOf_eq_bayesValue hm code lam decoder₁ hdecoder₁ hmax₁,
+    decoderSuccessOf_eq_bayesValue hm code lam decoder₂ hdecoder₂ hmax₂]
+
+/-- The tie-safe operational ML success equals the density-maximum Bayes value. -/
+theorem mlDecoder_success_eq_bayesValue
+    {m n : ℕ} (hm : 0 < m) (code : Fin m → Coord n) (lam : ℝ) :
+    decoderSuccess hm code lam = bayesValue hm code lam := by
+  exact decoderSuccessOf_eq_bayesValue hm code lam (mlDecoder hm code lam)
+    (measurable_mlDecoder hm code lam) (fun y j ↦ mlDecoder_maximizes hm code lam y j)
 
 end WeakSimplex

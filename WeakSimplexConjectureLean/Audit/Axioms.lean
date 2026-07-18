@@ -96,9 +96,16 @@ The accepted output for every command is exactly `[propext, Classical.choice, Qu
 #print axioms WeakSimplex.mlDecoder_le_of_maximizes
 #print axioms WeakSimplex.classLikelihood_mlDecoder_eq_max
 #print axioms WeakSimplex.measurable_mlDecoder
+#print axioms WeakSimplex.IsLikelihoodMaximizingDecoder
+#print axioms WeakSimplex.IsScoreMaximizingDecoder
+#print axioms WeakSimplex.IsScoreMaximizingDecoder.isLikelihoodMaximizing
+#print axioms WeakSimplex.decoderSuccessOf
 #print axioms WeakSimplex.decoderSuccess
+#print axioms WeakSimplex.decoderSuccessOf_eq_bayesValue
+#print axioms WeakSimplex.decoderSuccessOf_eq_of_isLikelihoodMaximizing
 #print axioms WeakSimplex.mlDecoder_success_eq_bayesValue
 #print axioms WeakSimplex.regularSimplexBayesValue
 #print axioms WeakSimplex.bayesValue_eq_regularSimplexBayesValue_of_codeGram
 #print axioms WeakSimplex.bayesValue_le_regularSimplex
 #print axioms WeakSimplex.weak_simplex
+#print axioms WeakSimplex.weak_simplex_of_scoreMaximizingDecoders

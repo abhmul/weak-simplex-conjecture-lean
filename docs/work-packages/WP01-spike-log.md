@@ -12,7 +12,7 @@
 | Source | URL | Exact revision | Toolchain | License | Paths used |
 |---|---|---|---|---|---|
 | LeanPool | https://github.com/Vilin97/lean-pool | 9c296f447f48f3242df5e65e0b6120ddffcd79a7 | Lean 4.32.0-rc1 | Apache-2.0 | LeanPool/Isoperimetric/Basic.lean, LeanPool/Isoperimetric/PrekopaLeindler.lean |
-| StatLean | https://github.com/StatLean/Stat-Lean | 31c61ed887bf3be0def314a3b3e5375d203b5ba1 | Lean 4.29.1 | Apache-2.0 | StatLean/AsymptoticStatistics/ForMathlib/PrekopaLeindler.lean, PiWithDensity.lean, GaussianMGF.lean, and lines 197–213 of Contiguity.lean |
+| StatLean | https://github.com/StatLean/Stat-Lean | 31c61ed887bf3be0def314a3b3e5375d203b5ba1 | Lean 4.29.1 | Apache-2.0 | StatLean/AsymptoticStatistics/ForMathlib/PrekopaLeindler.lean, PiWithDensity.lean, PiGaussian.lean (`pi_gaussianReal_eq_withDensity` only), GaussianMGF.lean, and lines 197–213 of Contiguity.lean |
 | Original isoperimetric fallback | https://github.com/hojonathanho/isoperimetric | 29768f8beeaf17295cdf3853d37da35d7e2b0a5f | Lean 4.26.0-rc2 | Apache-2.0 | None; immutable revision resolved, but no source was used |
 
 The repositories were fetched and checked out detached at the revisions above. Current branches were not used as evidence.
@@ -26,7 +26,7 @@ The LeanPool exact sources are preserved as Scratch/WP01/LeanPool/Basic.lean and
 - Basic.lean: 9fa3bcb548b8697381ca787c1915a6268c0411dccfa94633356dad25840db563
 - PrekopaLeindler.lean.upstream: 120efbe1c774b9d95bd04d59550d800f9ad93836a7c07abe4bff33fee7a971a4
 
-Scratch/WP01/LeanPool/PrekopaLeindler.lean is a scratch-only standalone aggregation. It replaces the local LeanPool.Isoperimetric.Basic import by the exact 69-line contents of that file, retains the two original direct mathlib imports, and adds the top axiom print. This aggregation is necessary because Scratch/ is deliberately not a Lake library/import root; it does not alter any declaration or proof.
+Scratch/WP01/LeanPool/PrekopaLeindler.lean is a scratch-only standalone aggregation. It replaces the local LeanPool.Isoperimetric.Basic import by the exact declaration and documentation body from lines 8–69 of that file, retains its direct Mathlib import and the Prékopa file's direct Mathlib import, omits the duplicate header, and adds the top axiom print. This aggregation is necessary because Scratch/ is deliberately not a Lake library/import root; it does not alter any declaration or proof.
 
 The exact StatLean source is preserved as Scratch/WP01/StatLean/PrekopaLeindler.lean.upstream, SHA-256 ecf65de6356e610aef1647fd473d91a0f489136e44a023b6214fd7682f582538. The compiling scratch port changes seven occurrences of the obsolete explicit application zero_le _ to Lean 4.31's zero_le, then adds the top axiom print. No statement or substantive proof step changed.
 
@@ -221,7 +221,7 @@ The theorem is a measure identity in the useful orientation for WP16: `N(0,R)` i
 
 ### Construction and local closure
 
-`Scratch/WP01/DensityRatio.lean` is a 435-line standalone scratch aggregation. It carries the already-audited finite-product `withDensity` proof and map/withDensity helper from the StatLean spike, then adds project-local declarations for the standard Euclidean density, volume transport, CFC square-root Jacobian, determinant identity, inverse quadratic-form identity, raw ratio, and explicit ratio. It does not import another Scratch file because `Scratch/` is not a Lake import root.
+`Scratch/WP01/DensityRatio.lean` is a 452-line standalone scratch aggregation. It carries the already-audited finite-product `withDensity` proof and map/withDensity helper from the StatLean spike, copies StatLean's `pi_gaussianReal_eq_withDensity` from `PiGaussian.lean`, then adds project-local declarations for the standard Euclidean density, volume transport, CFC square-root Jacobian, determinant identity, inverse quadratic-form identity, raw ratio, and explicit ratio. The copied StatLean declaration remains Apache-2.0; its proof body is unchanged and its surrounding upstream prose comments are omitted. The exact 62-line provider source is preserved as `Scratch/WP01/StatLean/PiGaussian.lean.upstream`, SHA-256 `693e6b99db8aa8b8914c3ed3f68190be4d272ca8ff6f74bbc1fc90a0f529f98b`. The aggregation does not import another Scratch file because `Scratch/` is not a Lake import root.
 
 The calculation proceeds as follows:
 
@@ -259,7 +259,7 @@ Mathlib.MeasureTheory.Measure.WithDensity
 Mathlib.Probability.Distributions.Gaussian.Multivariate
 ~~~
 
-`lake env lean --src-deps Scratch/WP01/DensityRatio.lean` reports precisely those eight direct mathlib sources and Lean `Init`, with no project, Scratch, or external import. During final closeout the provisional umbrella `import Mathlib` was replaced by this exact list; the theorem statements and proof bodies were unchanged. All density-specific declarations are project-local, so there is no upstream density theorem or proof modification to attribute.
+`lake env lean --src-deps Scratch/WP01/DensityRatio.lean` reports precisely those eight direct mathlib sources and Lean `Init`, with no project, Scratch, or external import. During final closeout the provisional umbrella `import Mathlib` was replaced by this exact list; the theorem statements and proof bodies were unchanged. All declarations in the `WP01Density` namespace are project-local. The preceding `AsymptoticStatistics.pi_gaussianReal_eq_withDensity` provider is copied from StatLean `PiGaussian.lean` at the pinned commit and retains its upstream Apache-2.0 attribution.
 
 ### Commands, costs, and audit
 

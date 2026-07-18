@@ -4,7 +4,7 @@ Formalization of the matrix-form Gaussian lower-orthant inequality and its reduc
 
 ## Status
 
-WP00–WP22 are complete, closing the M0 reproducible foundation, the adaptive branch through
+WP00–WP24 are complete, closing the M0 reproducible foundation, the adaptive branch through
 compatible variational witnesses and centered tilted half-lines, the Gaussian exponential-shift
 bridge, the conditional positive-definite lower-orthant theorem, and the Prékopa/log-concavity
 foundation, symmetric-rectangle theorem, even-factor layer cake, normalized self-convolution,
@@ -43,13 +43,8 @@ WP22 constructs the codebook score map and proves that its standard-Gaussian pus
 code Gram covariance. It defines the uniform-prior Bayes value as the integral of the pointwise
 finite maximum of exact shifted-Gaussian likelihood ratios, proves its prefactored-MGF identity,
 and certifies a measurable least-index ML decoder whose operational success equals that value.
-The final theorem `weak_simplex` compares this tie-safe success probability with every supplied
-regular-simplex realization for `n + 1` unit signals in `Coord n`. This closes M4; the theorem makes
-no distinct-codeword or null-tie assumption and also covers zero signal strength.
-WP23 has completed the local provenance, artifact-free source-snapshot, axiom, import-graph, and
-publication-documentation audits. The project is MIT-licensed, and a literal clean clone of the
-coherent release commit passed dependency resolution and every release gate. This closes M5;
-publishing the branch and observing hosted CI remain pending a safe GitHub remote.
+The theorem `weak_simplex` compares this canonical tie-safe success probability with every supplied regular-simplex realization for `n + 1` unit signals in `Coord n`. WP24 proves that every measurable likelihood-maximizing decoder has the same Bayes value and exports `weak_simplex_of_scoreMaximizingDecoders` for arbitrary measurable score-maximizing tie-breaking rules on both codebooks. This closes the source's universal tie-breaking claim without a distinct-codeword or null-tie assumption and also covers zero signal strength.
+WP23 has completed the local provenance, artifact-free source-snapshot, axiom, import-graph, and publication-documentation audits. Project-authored code is MIT-licensed, and a literal clean clone of the coherent release commit passed dependency resolution and every release gate. The repository is public, and hosted CI passed on the publication branch.
 
 ## Theorem dependency map
 
@@ -86,8 +81,12 @@ gramNormalization + gramMgf_normalization_identity + gaussianMax_mgf_le_regularS
 map_codeScore_stdGaussian + bayesValue_eq_gramMgf
   + gramGaussianMax_mgf_le_regularSimplex
   → bayesValue_le_regularSimplex
+measurable maximizing decoder + finite tie partition
+  → decoderSuccessOf_eq_bayesValue
 bayesValue_le_regularSimplex + mlDecoder_success_eq_bayesValue
   → weak_simplex
+bayesValue_le_regularSimplex + decoderSuccessOf_eq_bayesValue
+  → weak_simplex_of_scoreMaximizingDecoders
 ```
 
 ## Reproduce
@@ -119,6 +118,4 @@ Current and completed package cards live in [`docs/work-packages/`](docs/work-pa
 
 ## License
 
-Original project code is available under the [MIT License](LICENSE). Vendored StatLean sources
-retain their upstream Apache-2.0 license; see [PROVENANCE.md](PROVENANCE.md) for the exact source,
-revision, local changes, and audit record of every vendored artifact.
+Original project code is available under the [MIT License](LICENSE). Vendored StatLean sources and copied WP01 scratch artifacts retain their upstream Apache-2.0 licenses; see [PROVENANCE.md](PROVENANCE.md) and [the WP01 scratch ledger](Scratch/WP01/README.md) for exact sources, revisions, local changes, licenses, and audit boundaries.
