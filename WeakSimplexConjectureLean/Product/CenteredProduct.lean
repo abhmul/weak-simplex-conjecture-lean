@@ -2,6 +2,13 @@ import WeakSimplexConjectureLean.Product.PositiveLowerBound
 import WeakSimplexConjectureLean.Product.CenteredProperty
 import WeakSimplexConjectureLean.Product.SumDifference
 
+/-!
+# Centered log-concave product inequality
+
+This module proves the centered product comparison for bounded log-concave factors under a
+positive-definite Gaussian covariance.
+-/
+
 noncomputable section
 
 open Filter MeasureTheory ProbabilityTheory Set
@@ -9,7 +16,7 @@ open scoped BigOperators ENNReal Topology
 
 namespace WeakSimplex
 
-private theorem isBounded_range_const_mul_wp17
+private theorem isBounded_range_const_mul
     {f : ℝ → ℝ} (hf : Bornology.IsBounded (Set.range f)) (a : ℝ) :
     Bornology.IsBounded (Set.range (fun x ↦ a * f x)) := by
   obtain ⟨C, hC⟩ := hf.exists_norm_le
@@ -19,7 +26,7 @@ private theorem isBounded_range_const_mul_wp17
   rw [norm_mul]
   exact mul_le_mul_of_nonneg_left (hC _ (Set.mem_range_self x)) (norm_nonneg a)
 
-private theorem isLogConcave_const_mul_of_nonneg_wp17
+private theorem isLogConcave_const_mul_of_nonneg
     {f : ℝ → ℝ} {a : ℝ} (ha : 0 ≤ a)
     (hf : IsLogConcave (fun x ↦ ENNReal.ofReal (f x))) :
     IsLogConcave (fun x ↦ ENNReal.ofReal (a * f x)) := by
@@ -119,9 +126,9 @@ theorem centered_product_of_posDef
   have hh_nonneg : ∀ i x, 0 ≤ h i x := fun i x ↦ by
     exact mul_nonneg (inv_nonneg.mpr (hmass_pos i).le) (hf_nonneg i x)
   have hh_bounded : ∀ i, Bornology.IsBounded (Set.range (h i)) := fun i ↦ by
-    exact isBounded_range_const_mul_wp17 (hf_bounded i) (mass i)⁻¹
+    exact isBounded_range_const_mul (hf_bounded i) (mass i)⁻¹
   have hh_lc : ∀ i, IsLogConcave (fun x ↦ ENNReal.ofReal (h i x)) := fun i ↦ by
-    exact isLogConcave_const_mul_of_nonneg_wp17
+    exact isLogConcave_const_mul_of_nonneg
       (inv_nonneg.mpr (hmass_pos i).le) (hf_lc i)
   have hh_mass : ∀ i, ∫ x, h i x ∂gaussianReal 0 1 = 1 := fun i ↦ by
     rw [show (fun x ↦ h i x) = fun x ↦ (mass i)⁻¹ * f i x by rfl, integral_const_mul]

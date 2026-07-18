@@ -1,6 +1,13 @@
 import WeakSimplexConjectureLean.Coding.Gram
 import WeakSimplexConjectureLean.Coding.Normalization
 
+/-!
+# Regular-simplex comparison
+
+This module proves that the nonnegative moment-generating function of a Gaussian maximum is bounded
+by the value associated with the regular-simplex Gram matrix.
+-/
+
 set_option autoImplicit false
 
 noncomputable section

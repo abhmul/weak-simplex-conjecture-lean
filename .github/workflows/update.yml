@@ -8,17 +8,19 @@ on:
 jobs:
   check-for-updates: # Determines which updates to apply.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       is-update-available: ${{ steps.check-for-updates.outputs.is-update-available }}
       new-tags: ${{ steps.check-for-updates.outputs.new-tags }}
     steps:
       - name: Run the action
         id: check-for-updates
-        uses: leanprover-community/mathlib-update-action@v1
+        uses: leanprover-community/mathlib-update-action@2af1e578ac4eded399514f76a2a4d1e5b1b409ee # v1
         # START CONFIGURATION BLOCK 1
         # END CONFIGURATION BLOCK 1
   do-update: # Runs the upgrade, tests it, and makes a PR/issue/commit.
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: write      # Grants permission to push changes to the repository
       issues: write        # Grants permission to create or update issues
@@ -32,7 +34,7 @@ jobs:
     steps:
       - name: Run the action
         id: update-the-repo
-        uses: leanprover-community/mathlib-update-action/do-update@v1
+        uses: leanprover-community/mathlib-update-action/do-update@2af1e578ac4eded399514f76a2a4d1e5b1b409ee # v1
         with:
           tag: ${{ matrix.tag }}
           # START CONFIGURATION BLOCK 2

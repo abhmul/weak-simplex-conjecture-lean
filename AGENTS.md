@@ -102,6 +102,7 @@ local mathlib search has been documented.
 lean --version
 lake --version
 lake build
+python3 scripts/check_axiom_audit.py
 
 grep -RInE '\b(sorry|admit)\b' WeakSimplexConjectureLean
 grep -RInE '^[[:space:]]*axiom[[:space:]]' WeakSimplexConjectureLean
@@ -116,6 +117,7 @@ grep -RInE '^[[:space:]]*unsafe[[:space:]]' WeakSimplexConjectureLean
 #print axioms WeakSimplex.lowerOrthant_ge_iid_of_posDef
 #print axioms WeakSimplex.lowerOrthant_ge_iid
 #print axioms WeakSimplex.weak_simplex
+#print axioms WeakSimplex.weak_simplex_of_scoreMaximizingDecoders
 ```
 
 ## External-code policy

@@ -1,121 +1,106 @@
-# Weak Simplex Conjecture Lean Formalization
+# Stochastic Domination of Gaussian Maxima in Lean
 
-Formalization of the matrix-form Gaussian lower-orthant inequality and its reduction to the weak simplex conjecture. The governing architecture and trust policy are in [`docs/weak_simplex_lean_formalization_report.v3-reassessment.md`](docs/weak_simplex_lean_formalization_report.v3-reassessment.md).
+[![Lean CI](https://github.com/abhmul/weak-simplex-conjecture-lean/actions/workflows/lean_action_ci.yml/badge.svg?branch=main)](https://github.com/abhmul/weak-simplex-conjecture-lean/actions/workflows/lean_action_ci.yml)
+[![arXiv](https://img.shields.io/badge/arXiv-2607.14087-b31b1b.svg)](https://arxiv.org/abs/2607.14087)
 
-## Status
+This repository contains a companion Lean 4 formalization of the Gaussian stochastic-domination theorem and its application to the Weak Simplex Conjecture in [*Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture*](https://arxiv.org/abs/2607.14087) by Abhijeet Mulgund. The development uses [mathlib](https://github.com/leanprover-community/mathlib4) and is pinned to Lean 4.31.0.
 
-WP00–WP24 are complete, closing the M0 reproducible foundation, the adaptive branch through
-compatible variational witnesses and centered tilted half-lines, the Gaussian exponential-shift
-bridge, the conditional positive-definite lower-orthant theorem, and the Prékopa/log-concavity
-foundation, symmetric-rectangle theorem, even-factor layer cake, normalized self-convolution,
-sum–difference deficit, and dyadic CLT interfaces of the product branch.
-The repository now contains the frozen finite/matrix interfaces, standard-normal and scalar-tilt
-calculus, positive-definite quadratic coercivity, the rank-one inverse bound, a global unconstrained
-adaptive-potential maximizer, coordinate stationarity, compatibility and value identities,
-`AdaptiveWitnesses`, an audited finite-dimensional Prékopa–Leindler port, positive-semidefinite
-Gaussian-kernel log-concavity, measurable marginalization, convolution closure, the PSD Gaussian
-measure shift and lintegral corollary, centered half-line mass and zero-barycenter identities, and
-adaptive event-shift algebra, plus the positive-definite symmetric Gaussian rectangle inequality.
-The product branch now also contains the bounded even log-concave factor inequality, the analytic
-normalized self-convolution closure properties, its exact normalized-average measure law, and
-preservation of mass one, zero Gaussian barycenter, and variance. It also contains the exact joint
-Gaussian sum–difference product law, the one-step inequality `Z_R(Dh) ≤ Z_R(h)^2`, the exact
-`2^r` iid normalized-sum law, strict variance positivity, and convergence of the iterated density
-measures to their variance-matched Gaussian.
-It also contains the explicit positive-definite Gaussian density ratio relative to product standard
-Gaussian measure, its compact-box positive minimum and deterministic box lower bound, and the
-eventual positive lower bound for all dyadic correlated product integrals. Repeated squaring against
-that fixed lower bound proves `centered_product_of_posDef`, closing M2 without a singular-factor
-continuity theorem. WP18 combines M1 and M2 to prove the unconditional
-`lowerOrthant_ge_iid_of_posDef`. WP19 regularizes an arbitrary admissible covariance, proves the
-exact coupled Gaussian weak limit and lower-orthant frontier nullity from its coordinate marginals,
-and passes the inequality through Portmanteau. Thus `lowerOrthant_ge_iid` holds for every
-admissible covariance and M3 is closed.
-WP20 defines the finite coordinate maximum, identifies its lower-orthant sublevels, transfers M3
-to strict upper-tail order against independent standard Gaussians, and proves the corresponding
-nonnegative MGF comparison. The proof establishes exponential integrability from coordinate
-marginals before converting its ENNReal layer-cake comparison to real Bochner integrals.
-WP21 normalizes an arbitrary correlation matrix by an independent common Gaussian, proves the
-exact prefactored-MGF identity, identifies the regular-simplex Gram matrix with identity covariance
-after normalization, and transfers the WP20 comparison back to Gram matrices. Thus
-`gramGaussianMax_mgf_le_regularSimplex` proves the required Gram-matrix MGF comparison.
-WP22 constructs the codebook score map and proves that its standard-Gaussian pushforward has the
-code Gram covariance. It defines the uniform-prior Bayes value as the integral of the pointwise
-finite maximum of exact shifted-Gaussian likelihood ratios, proves its prefactored-MGF identity,
-and certifies a measurable least-index ML decoder whose operational success equals that value.
-The theorem `weak_simplex` compares this canonical tie-safe success probability with every supplied regular-simplex realization for `n + 1` unit signals in `Coord n`. WP24 proves that every measurable likelihood-maximizing decoder has the same Bayes value and exports `weak_simplex_of_scoreMaximizingDecoders` for arbitrary measurable score-maximizing tie-breaking rules on both codebooks. This closes the source's universal tie-breaking claim without a distinct-codeword or null-tie assumption and also covers zero signal strength.
-WP23 has completed the local provenance, artifact-free source-snapshot, axiom, import-graph, and publication-documentation audits. Project-authored code is MIT-licensed, and a literal clean clone of the coherent release commit passed dependency resolution and every release gate. The repository is public, and hosted CI passed on the publication branch.
+## Main results
 
-## Theorem dependency map
+For $m\geq 2$, let `R` be an `m × m` correlation matrix satisfying
 
-```text
-rankOne_inverse_bound
-  → exists_adaptivePotential_maximizer_with_value
-  → exists_adaptiveWitnesses
-exists_adaptiveWitnesses + Gaussian shift + centered tilted-half-line/event-shift identities
-  → lowerOrthant_ge_iid_of_posDef_of_centeredProduct
+$$
+R - \frac{1}{m}\mathbf{1}\mathbf{1}^{\mathsf T} \succeq 0.
+$$
 
-prekopa_leindler + measurable_isLogConcave_lintegral_right
-  → symmetricRectangle_ge_iid_of_posDef
-  → even_logConcave_product_of_posDef
-even_logConcave_product_of_posDef + Gaussian product-rotation invariance
-  (private in Product/SumDifference.lean)
-  → normalizedSelfConvolution_product_deficit_of_posDef
-normalizedSelfConvolution_law
-  → hasLaw_iteratedNormalizedSelfConvolution_dyadicSum
-  → tendstoInDistribution_iteratedNormalizedSelfConvolution
-tendstoInDistribution_iteratedNormalizedSelfConvolution
-  + exists_pos_le_gaussianDensityRatio_on_box
-  → exists_eventual_pos_lower_bound_integral_iteratedNormalizedSelfConvolution
-the product-deficit theorem + the eventual positive lower bound
-  → centered_product_of_posDef
+If $X\sim\mathcal N(0,R)$ and $Z_1,\ldots,Z_m$ are independent standard Gaussian random variables, the main theorem proves
 
-lowerOrthant_ge_iid_of_posDef_of_centeredProduct + centered_product_of_posDef
-  → lowerOrthant_ge_iid_of_posDef
-  → lowerOrthant_ge_iid
-  → coordinateMax_tail_le_iid
-  → gaussianMax_mgf_le_regularSimplex
+$$
+\max_i X_i \leq_{\mathrm{st}} \max_i Z_i,
+$$
 
-gramNormalization + gramMgf_normalization_identity + gaussianMax_mgf_le_regularSimplex
-  → gramGaussianMax_mgf_le_regularSimplex
-map_codeScore_stdGaussian + bayesValue_eq_gramMgf
-  + gramGaussianMax_mgf_le_regularSimplex
-  → bayesValue_le_regularSimplex
-measurable maximizing decoder + finite tie partition
-  → decoderSuccessOf_eq_bayesValue
-bayesValue_le_regularSimplex + mlDecoder_success_eq_bayesValue
-  → weak_simplex
-bayesValue_le_regularSimplex + decoderSuccessOf_eq_bayesValue
-  → weak_simplex_of_scoreMaximizingDecoders
-```
+or equivalently, for every $c\in\mathbb R$,
 
-## Reproduce
+$$
+\mathbb P\{X_i\leq c\text{ for every }i\}\geq\Phi(c)^m.
+$$
 
-The repository pins Lean to `leanprover/lean4:v4.31.0` in `lean-toolchain` and pins mathlib to
-`fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` in `lake-manifest.json` (direct input revision
-`v4.31.0`). From a clean checkout, run:
+The comparison is for equal-threshold lower orthants; it does not assert an analogous inequality for arbitrary threshold vectors.
+
+| Paper result | Lean declaration | Source |
+|---|---|---|
+| Theorem 2.1, lower-orthant and stochastic-order forms | `lowerOrthant_ge_iid`, `coordinateMax_tail_le_iid` | [`Orthant/Singular.lean`](WeakSimplexConjectureLean/Orthant/Singular.lean), [`Maxima/StochasticOrder.lean`](WeakSimplexConjectureLean/Maxima/StochasticOrder.lean) |
+| Corollary 2.3, Gaussian-maximum MGF comparison | `gramGaussianMax_mgf_le_regularSimplex` | [`Coding/RegularSimplex.lean`](WeakSimplexConjectureLean/Coding/RegularSimplex.lean) |
+| Corollary 2.4, Weak Simplex Conjecture | `weak_simplex`, `weak_simplex_of_scoreMaximizingDecoders` | [`Coding/WeakSimplex.lean`](WeakSimplexConjectureLean/Coding/WeakSimplex.lean) |
+
+The final coding theorem covers arbitrary measurable pointwise score-maximizing tie-breaking rules. The more general identity [`decoderSuccessOf_eq_bayesValue`](WeakSimplexConjectureLean/Coding/MLDecoder.lean) shows that every measurable likelihood-maximizing decoder has the same success probability, without assuming distinct codewords or null tie sets. The signal-strength parameter may be zero.
+
+A regular simplex is supplied to the final theorem through the exact Gram-matrix condition `codeGram simplex = regularSimplexGram (n + 1)`. The repository does not separately construct a coordinate realization of that Gram matrix.
+
+## Scope
+
+The formalization includes the proof chain for the equal-threshold stochastic comparison, its Gaussian-maximum MGF consequence, the Bayes/maximum-likelihood identity, and the Weak Simplex Conjecture. It includes adaptive tilting, the centered log-concave product inequality needed by the proof, positive-definite and singular covariance arguments, and measurable treatment of decoder ties.
+
+The paper's general monotone-function corollary, Simplex Mean Width corollary, and unrestricted finite-energy AWGN formula are not formalized here as standalone Lean theorems. The centered product inequality is formalized for positive-definite covariance; singular covariance is handled at the outer lower-orthant theorem.
+
+## Building
+
+Install Lean using the [official instructions](https://lean-lang.org/install/), then clone the repository:
 
 ```bash
-lean --version
-lake --version
-lake update
+git clone https://github.com/abhmul/weak-simplex-conjecture-lean.git
+cd weak-simplex-conjecture-lean
+```
+
+The repository pins Lean and all Lake dependencies. Downloading the mathlib cache is optional but substantially reduces build time:
+
+```bash
+lake exe cache get
 lake build --wfail
-lake env lean -DwarningAsError=true WeakSimplexConjectureLean/Audit/Axioms.lean
 ```
 
-The trusted-source audit is:
+## Checking the proof
+
+The project-owned production source builds without `sorry`, `admit`, project-defined axioms, unsafe declarations, or `native_decide`. The permanent audit file prints the transitive axioms of the public results:
 
 ```bash
-python3 -m unittest discover -s scripts -p 'test_audit_trusted_lean.py'
-python3 scripts/audit_trusted_lean.py --public-root WeakSimplexConjectureLean.lean WeakSimplexConjectureLean WeakSimplexConjectureLean.lean
+python3 scripts/check_axiom_audit.py
 ```
 
-The scanner conservatively checks forbidden spellings inside normal strings, raw strings, and
-escaped identifiers; character literals are tokenized atomically, and only comment text recognized
-by both structural views is ignored.
+Every audited declaration uses exactly Lean's standard `propext`, `Classical.choice`, and `Quot.sound` axioms. Continuous integration also builds the public root, checks the production import graph, runs the trusted-source scanner, and verifies the provenance ledger.
 
-Current and completed package cards live in [`docs/work-packages/`](docs/work-packages/).
+## Repository structure
+
+- [`WeakSimplexConjectureLean/`](WeakSimplexConjectureLean/) contains the formalization. The principal proof branches are under `Tilt/`, `Product/`, `Orthant/`, `Maxima/`, and `Coding/`.
+- [`WeakSimplexConjectureLean.lean`](WeakSimplexConjectureLean.lean) is the public umbrella import.
+- [`WeakSimplexConjectureLean/Audit/Axioms.lean`](WeakSimplexConjectureLean/Audit/Axioms.lean) is the permanent axiom audit.
+- [`WeakSimplexConjectureLean/Vendor/`](WeakSimplexConjectureLean/Vendor/) contains the minimal vendored StatLean source used by the proof; [`PROVENANCE.md`](PROVENANCE.md) records exact revisions, changes, licenses, and audit results.
+- [`Scratch/`](Scratch/) preserves research experiments and upstream snapshots. It is not imported by the production library.
+- [`docs/theorem-dependencies.md`](docs/theorem-dependencies.md) gives the principal theorem dependency graph; [`docs/`](docs/) and [`notes/`](notes/) also contain development records, architecture notes, and historical mathematical source material.
+
+## Citation
+
+If you use this formalization, please cite the accompanying paper. Machine-readable software and preferred-paper citation metadata are provided in [`CITATION.cff`](CITATION.cff).
+
+```bibtex
+@misc{mulgund2026stochastic,
+  title        = {Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture},
+  author       = {Abhijeet Mulgund},
+  year         = {2026},
+  eprint       = {2607.14087},
+  archivePrefix = {arXiv},
+  primaryClass = {math.PR},
+  doi          = {10.48550/arXiv.2607.14087},
+  url          = {https://arxiv.org/abs/2607.14087}
+}
+```
+
+Questions, corrections, and reproducibility reports are welcome through [GitHub issues](https://github.com/abhmul/weak-simplex-conjecture-lean/issues).
+
+## Acknowledgements
+
+The accompanying paper acknowledges support from the National Science Foundation under awards 2240532 and 2217023. This formalization relies on mathlib and on a small audited source closure from [StatLean](https://github.com/StatLean/Stat-Lean).
 
 ## License
 
-Original project code is available under the [MIT License](LICENSE). Vendored StatLean sources and copied WP01 scratch artifacts retain their upstream Apache-2.0 licenses; see [PROVENANCE.md](PROVENANCE.md) and [the WP01 scratch ledger](Scratch/WP01/README.md) for exact sources, revisions, local changes, licenses, and audit boundaries.
+Project-authored code is released under the [MIT License](LICENSE). Vendored StatLean code and copied research artifacts retain their upstream Apache-2.0 licenses; see [`PROVENANCE.md`](PROVENANCE.md) and the [`Scratch/WP01` provenance ledger](Scratch/WP01/README.md).

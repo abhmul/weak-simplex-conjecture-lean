@@ -130,7 +130,7 @@ private theorem isLogConcave_fixedAverageFactor
   funext v
   exact ENNReal.ofReal_mul (hh_nonneg _)
 
-private theorem exists_norm_bound_of_isBounded_range_wp14
+private theorem exists_norm_bound_of_isBounded_range
     {X : Type*} {f : X → ℝ} (hf : Bornology.IsBounded (Set.range f)) :
     ∃ C : ℝ, ∀ x, ‖f x‖ ≤ C := by
   obtain ⟨C, hC⟩ := (Metric.isBounded_iff_subset_closedBall (0 : ℝ)).1 hf
@@ -140,7 +140,7 @@ private theorem exists_norm_bound_of_isBounded_range_wp14
 private theorem isBounded_range_fixedAverageFactor
     {h : ℝ → ℝ} (hh : Bornology.IsBounded (Set.range h)) (u : ℝ) :
     Bornology.IsBounded (Set.range (fixedAverageFactor h u)) := by
-  obtain ⟨C, hC⟩ := exists_norm_bound_of_isBounded_range_wp14 hh
+  obtain ⟨C, hC⟩ := exists_norm_bound_of_isBounded_range hh
   apply (Metric.isBounded_closedBall :
     Bornology.IsBounded (Metric.closedBall (0 : ℝ) (C ^ 2))).subset
   rintro z ⟨v, rfl⟩
@@ -154,7 +154,7 @@ private theorem integrable_of_measurable_isBounded_range
     {μ : Measure X} [IsFiniteMeasure μ] {f : X → ℝ}
     (hf_meas : Measurable f) (hf_bounded : Bornology.IsBounded (Set.range f)) :
     Integrable f μ := by
-  obtain ⟨C, hC⟩ := exists_norm_bound_of_isBounded_range_wp14 hf_bounded
+  obtain ⟨C, hC⟩ := exists_norm_bound_of_isBounded_range hf_bounded
   let x₀ : X := Classical.choice inferInstance
   have hC_nonneg : 0 ≤ C := (norm_nonneg (f x₀)).trans (hC x₀)
   refine Integrable.mono' (integrable_const C) hf_meas.aestronglyMeasurable ?_
@@ -193,7 +193,7 @@ private theorem integrable_coord_product
     (hh_bounded : ∀ i, Bornology.IsBounded (Set.range (h i))) :
     Integrable (fun x : Coord m ↦ ∏ i, h i (x i)) μ := by
   classical
-  choose C hC using fun i ↦ exists_norm_bound_of_isBounded_range_wp14 (hh_bounded i)
+  choose C hC using fun i ↦ exists_norm_bound_of_isBounded_range (hh_bounded i)
   have hcoord_meas (i : Fin m) : Measurable (fun x : Coord m ↦ h i (x i)) :=
     (hh_meas i).comp (EuclideanSpace.proj (𝕜 := ℝ) i).measurable
   have hcoord_bound (i : Fin m) : ∀ x : Coord m, ‖h i (x i)‖ ≤ C i :=

@@ -1,6 +1,13 @@
 import WeakSimplexConjectureLean.Maxima.CoordinateMax
 import WeakSimplexConjectureLean.Orthant.Singular
 
+/-!
+# Stochastic order for Gaussian maxima
+
+This module translates the equal-threshold lower-orthant theorem into a strict upper-tail comparison
+for coordinatewise Gaussian maxima.
+-/
+
 set_option autoImplicit false
 
 noncomputable section
@@ -42,7 +49,7 @@ private theorem coordinateMax_cdf_ge_iid
   rw [hset, multivariateGaussian_one_lowerOrthant]
   exact lowerOrthant_ge_iid hm R hR c
 
-/-- WP19 expressed as upper-tail domination for coordinate maxima. -/
+/-- The lower-orthant theorem expressed as upper-tail domination for coordinate maxima. -/
 theorem coordinateMax_tail_le_iid
     {m : ℕ} (hm : 0 < m)
     (R : Matrix (Fin m) (Fin m) ℝ)
