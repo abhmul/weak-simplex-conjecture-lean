@@ -47,8 +47,9 @@ The final theorem `weak_simplex` compares this tie-safe success probability with
 regular-simplex realization for `n + 1` unit signals in `Coord n`. This closes M4; the theorem makes
 no distinct-codeword or null-tie assumption and also covers zero signal strength.
 WP23 has completed the local provenance, artifact-free source-snapshot, axiom, import-graph, and
-publication-documentation audits. The project license is MIT and a coherent release commit is
-authorized; literal clean-clone verification remains before M5 is closed.
+publication-documentation audits. The project is MIT-licensed, and a literal clean clone of the
+coherent release commit passed dependency resolution and every release gate. This closes M5;
+publishing the branch and observing hosted CI remain pending a safe GitHub remote.
 
 ## Theorem dependency map
 
