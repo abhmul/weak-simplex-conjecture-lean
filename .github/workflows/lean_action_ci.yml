@@ -1,15 +1,12 @@
-name: Lean Action CI
+name: Lean CI
 
 on:
   push:
   pull_request:
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read # Read access to repository contents
-  pages: write # Write access to GitHub Pages
-  id-token: write # Write access to ID tokens
+  contents: read
 
 jobs:
   build:
@@ -18,4 +15,47 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
-      - uses: leanprover-community/docgen-action@v1
+        with:
+          build: true
+          build-args: "--wfail"
+          test: false
+
+      - name: Compile public and audit roots
+        run: |
+          lake env lean WeakSimplexConjectureLean.lean
+          lake env lean WeakSimplexConjectureLean/Audit/Axioms.lean
+
+      - name: Generate the production import graph
+        run: lake exe graph --to WeakSimplexConjectureLean "$RUNNER_TEMP/import_graph.dot"
+
+      - name: Enforce trusted-source policy
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_audit_trusted_lean.py'
+          python3 scripts/audit_trusted_lean.py \
+            --public-root WeakSimplexConjectureLean.lean \
+            WeakSimplexConjectureLean WeakSimplexConjectureLean.lean
+
+      - name: Check vendor entries in the provenance ledger
+        shell: bash
+        run: |
+          test -f PROVENANCE.md
+          while IFS= read -r -d '' vendor_file; do
+            if ! awk -F '|' -v target="\`$vendor_file\`" '
+              function trim(value) {
+                gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+                return value
+              }
+              trim($2) == target {
+                found = 1
+                for (column = 3; column <= 9; column++) {
+                  value = trim($column)
+                  if (value == "" || value == "-" || value == "—") bad = 1
+                }
+              }
+              END { exit (found && !bad) ? 0 : 1 }
+            ' PROVENANCE.md; then
+              echo "Missing or incomplete provenance entry for $vendor_file"
+              exit 1
+            fi
+          done < <(find WeakSimplexConjectureLean/Vendor \( -type f -o -type l \) \
+            ! -path 'WeakSimplexConjectureLean/Vendor/README.md' -print0)

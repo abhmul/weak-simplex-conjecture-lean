@@ -1,5 +1,6 @@
 name = "weak-simplex-conjecture-lean"
 version = "0.1.0"
+license = "MIT"
 keywords = ["math", "probability", "gaussian", "formalization"]
 defaultTargets = ["WeakSimplexConjectureLean"]
 
@@ -8,6 +9,8 @@ autoImplicit = false
 relaxedAutoImplicit = false
 pp.unicode.fun = true
 weak.linter.mathlibStandardSet = true
+# Project sources use the repository-level MIT license rather than mathlib's Apache header format.
+weak.linter.style.header = false
 
 [[require]]
 name = "mathlib"
