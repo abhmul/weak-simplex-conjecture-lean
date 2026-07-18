@@ -22,7 +22,7 @@ $$
 or equivalently, for every $c\in\mathbb R$,
 
 $$
-\mathbb P\{X_i\leq c\text{ for every }i\}\geq\Phi(c)^m.
+\mathbb P[X_i\leq c\text{ for every }i]\geq\Phi(c)^m.
 $$
 
 The comparison is for equal-threshold lower orthants; it does not assert an analogous inequality for arbitrary threshold vectors.
