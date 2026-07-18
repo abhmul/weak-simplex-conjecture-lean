@@ -1,11 +1,10 @@
 import WeakSimplexConjectureLean
 
 /-!
-# Permanent axiom-audit dossier
+# Axiom audit
 
-Every completed mathematical work package is represented below. In particular, the M1--M4
-milestone endpoints and all final coding/decoder seams are active rather than future placeholders.
-The accepted output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
+This file records the transitive axioms used by the principal public declarations. The accepted
+output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 -/
 
 #print axioms WeakSimplex.measurableSet_lowerOrthant

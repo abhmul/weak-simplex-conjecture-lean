@@ -1,6 +1,13 @@
 import WeakSimplexConjectureLean.Coding.MLDecoder
 import WeakSimplexConjectureLean.Coding.RegularSimplex
 
+/-!
+# Weak Simplex Conjecture
+
+This module reduces maximum-likelihood decoding success to the Gaussian maximum comparison and
+states the final weak-simplex theorems, including arbitrary measurable score-maximizing ties.
+-/
+
 set_option autoImplicit false
 
 noncomputable section

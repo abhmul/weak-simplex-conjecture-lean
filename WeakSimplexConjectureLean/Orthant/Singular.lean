@@ -2,6 +2,13 @@ import WeakSimplexConjectureLean.Orthant.PositiveDefinite
 import Mathlib.Algebra.Order.Chebyshev
 import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
 
+/-!
+# Singular covariance
+
+This module obtains the lower-orthant comparison for positive-semidefinite covariance matrices by
+regularizing to the positive-definite case and passing to the limit.
+-/
+
 set_option autoImplicit false
 
 noncomputable section

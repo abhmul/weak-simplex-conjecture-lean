@@ -13,7 +13,7 @@ description: >
 
 Require all of the following before starting:
 
-- a work-package identifier `WP00`–`WP23`;
+- a work-package identifier `WP00`–`WP24`;
 - an acceptance theorem or explicit spike deliverable;
 - an owned file set;
 - a stop budget;

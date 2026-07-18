@@ -35,5 +35,6 @@ import WeakSimplexConjectureLean.Tilt.TiltedHalfLine
 /-!
 # Weak Simplex Conjecture Lean
 
-Public library root. Mathematical modules are added only through completed work packages.
+Umbrella import for the public formalization of Gaussian stochastic domination and the Weak
+Simplex Conjecture.
 -/

@@ -11,26 +11,28 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v5
-      - uses: leanprover/lean-action@v1
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9 # v1
         with:
           build: true
           build-args: "--wfail"
           test: false
 
-      - name: Compile public and audit roots
-        run: |
-          lake env lean WeakSimplexConjectureLean.lean
-          lake env lean WeakSimplexConjectureLean/Audit/Axioms.lean
+      - name: Compile the public root
+        run: lake env lean -DwarningAsError=true WeakSimplexConjectureLean.lean
+
+      - name: Verify the axiom audit
+        run: python3 scripts/check_axiom_audit.py
 
       - name: Generate the production import graph
         run: lake exe graph --to WeakSimplexConjectureLean "$RUNNER_TEMP/import_graph.dot"
 
       - name: Enforce trusted-source policy
         run: |
-          python3 -m unittest discover -s scripts -p 'test_audit_trusted_lean.py'
+          python3 -m unittest discover -s scripts -p 'test_*.py'
           python3 scripts/audit_trusted_lean.py \
             --public-root WeakSimplexConjectureLean.lean \
             WeakSimplexConjectureLean WeakSimplexConjectureLean.lean

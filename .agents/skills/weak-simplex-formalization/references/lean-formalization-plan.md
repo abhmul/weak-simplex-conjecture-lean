@@ -6,8 +6,8 @@
 - **Lean baseline:** `leanprover/lean4:v4.31.0`
 - **mathlib revision:** `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f`
 - **Primary mathematical source:** `simplex_optimality_proof.v3.md`
-- **Associated paper source:** `stochastic-domination-gaussian-maxima_2026-07-16_1497c02.md`
-- **Supersedes for execution purposes:** `weak_simplex_lean_formalization_report.md`
+- **Associated paper:** Abhijeet Mulgund, [*Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture*](https://arxiv.org/abs/2607.14087), arXiv:2607.14087
+- **Supersedes for execution purposes:** an earlier internal formalization report
 
 ---
 
@@ -1856,7 +1856,7 @@ Required:
 - `PROVENANCE.md` is complete;
 - `Audit/Axioms.lean` covers every public milestone theorem;
 - no `sorry`, `admit`, project axiom, or unaudited external theorem remains;
-- README contains a theorem dependency map and reproduction instructions.
+- the repository contains a theorem dependency map and the README contains reproduction instructions and a paper-to-Lean theorem correspondence table.
 
 ---
 
@@ -1872,9 +1872,9 @@ Use the following as the governing implementation instruction.
 
 ### Project sources
 
-- `weak_simplex_lean_formalization_report.md`
+- earlier internal formalization report
 - `simplex_optimality_proof.v3.md`
-- `stochastic-domination-gaussian-maxima_2026-07-16_1497c02.md`
+- Abhijeet Mulgund, [*Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture*](https://arxiv.org/abs/2607.14087), arXiv:2607.14087
 - `lakefile.toml`
 - `lake-manifest.json`
 
@@ -1914,6 +1914,7 @@ grep -RInE '^[[:space:]]*unsafe[[:space:]]' WeakSimplexConjectureLean
 #print axioms WeakSimplex.lowerOrthant_ge_iid_of_posDef
 #print axioms WeakSimplex.lowerOrthant_ge_iid
 #print axioms WeakSimplex.weak_simplex
+#print axioms WeakSimplex.weak_simplex_of_scoreMaximizingDecoders
 ```
 
 ---

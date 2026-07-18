@@ -2,6 +2,13 @@ import WeakSimplexConjectureLean.Coding.BayesValue
 import WeakSimplexConjectureLean.Gaussian.Shift
 import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 
+/-!
+# Maximum-likelihood decoders
+
+This module constructs a measurable finite maximum-likelihood decoder and proves that every
+measurable likelihood-maximizing tie-breaking rule has the same average success probability.
+-/
+
 set_option autoImplicit false
 
 noncomputable section

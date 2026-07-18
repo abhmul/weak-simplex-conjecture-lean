@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite the accompanying paper."
+type: software
+title: "Weak Simplex Conjecture Lean Formalization"
+authors:
+  - family-names: "Mulgund"
+    given-names: "Abhijeet"
+version: 0.1.0
+date-released: "2026-07-18"
+repository-code: "https://github.com/abhmul/weak-simplex-conjecture-lean"
+url: "https://github.com/abhmul/weak-simplex-conjecture-lean"
+license: MIT
+abstract: "A Lean 4 formalization of the stochastic domination theorem for Gaussian maxima and its application to the Weak Simplex Conjecture."
+keywords:
+  - "Lean 4"
+  - "formalized mathematics"
+  - "Gaussian maxima"
+  - "stochastic domination"
+  - "Weak Simplex Conjecture"
+  - "information theory"
+preferred-citation:
+  type: article
+  title: "Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture"
+  authors:
+    - family-names: "Mulgund"
+      given-names: "Abhijeet"
+  year: 2026
+  doi: "10.48550/arXiv.2607.14087"
+  url: "https://arxiv.org/abs/2607.14087"
+  identifiers:
+    - type: other
+      value: "arXiv:2607.14087"
+      description: "The arXiv preprint."
