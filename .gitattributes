@@ -1,0 +1,2 @@
+# Preserve the byte-exact upstream license while suppressing its intentional terminal blank line.
+Scratch/WP01/LeanPool/LICENSE whitespace=-blank-at-eof

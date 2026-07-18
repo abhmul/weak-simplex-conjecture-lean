@@ -1,1 +1,39 @@
 import WeakSimplexConjectureLean.Basic
+import WeakSimplexConjectureLean.Coding.BayesValue
+import WeakSimplexConjectureLean.Coding.Gram
+import WeakSimplexConjectureLean.Coding.MLDecoder
+import WeakSimplexConjectureLean.Coding.Normalization
+import WeakSimplexConjectureLean.Coding.RegularSimplex
+import WeakSimplexConjectureLean.Coding.WeakSimplex
+import WeakSimplexConjectureLean.Core.Correlation
+import WeakSimplexConjectureLean.Gaussian.DensityRatio
+import WeakSimplexConjectureLean.Gaussian.Shift
+import WeakSimplexConjectureLean.LogConcavity.Indicators
+import WeakSimplexConjectureLean.LogConcavity.Prekopa
+import WeakSimplexConjectureLean.Maxima.CoordinateMax
+import WeakSimplexConjectureLean.Maxima.StochasticOrder
+import WeakSimplexConjectureLean.Maxima.ExponentialMoments
+import WeakSimplexConjectureLean.Normal.TruncatedMoments
+import WeakSimplexConjectureLean.Normal.TiltFunctions
+import WeakSimplexConjectureLean.Orthant.PositiveDefiniteConditional
+import WeakSimplexConjectureLean.Orthant.PositiveDefinite
+import WeakSimplexConjectureLean.Orthant.Singular
+import WeakSimplexConjectureLean.Product.CenteredProperty
+import WeakSimplexConjectureLean.Product.SymmetricRectangle
+import WeakSimplexConjectureLean.Product.EvenLayerCake
+import WeakSimplexConjectureLean.Product.NormalizedSelfConvolution
+import WeakSimplexConjectureLean.Product.SumDifference
+import WeakSimplexConjectureLean.Product.DyadicCLT
+import WeakSimplexConjectureLean.Product.PositiveLowerBound
+import WeakSimplexConjectureLean.Product.CenteredProduct
+import WeakSimplexConjectureLean.Tilt.AdaptiveWitnesses
+import WeakSimplexConjectureLean.Tilt.CompactMaximizer
+import WeakSimplexConjectureLean.Tilt.EventShift
+import WeakSimplexConjectureLean.Tilt.RankOneInverse
+import WeakSimplexConjectureLean.Tilt.TiltedHalfLine
+
+/-!
+# Weak Simplex Conjecture Lean
+
+Public library root. Mathematical modules are added only through completed work packages.
+-/

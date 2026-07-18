@@ -1,5 +1,12 @@
 /.lake
 
+# Python audit-tool caches.
+__pycache__/
+*.py[cod]
+
+# Machine-specific Codex paths; use the tracked example as a template.
+/.codex/config.toml
+
 # Machine-local links to personal agent-vault skills.
 /.agents/skills/checkpoint
 /.agents/skills/web-discovery

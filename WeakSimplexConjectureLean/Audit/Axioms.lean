@@ -1,0 +1,111 @@
+import WeakSimplexConjectureLean
+
+/-!
+# Permanent axiom-audit dossier
+
+Every completed mathematical work package is represented below. In particular, the M1--M4
+milestone endpoints and all final coding/decoder seams are active rather than future placeholders.
+The accepted output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
+-/
+
+#print axioms WeakSimplex.measurableSet_lowerOrthant
+#print axioms WeakSimplex.truncated_second_moment
+#print axioms WeakSimplex.localLogMass_tendsto_atBot
+#print axioms WeakSimplex.rankOne_inverse_bound
+#print axioms WeakSimplex.exists_adaptivePotential_maximizer
+#print axioms WeakSimplex.exists_adaptivePotential_maximizer_with_value
+#print axioms WeakSimplex.Vendor.StatLean.AsymptoticStatistics.prekopaLeindler
+#print axioms WeakSimplex.prekopa_leindler
+#print axioms WeakSimplex.isLogConcave_gaussianQuadraticKernel
+#print axioms WeakSimplex.measurable_isLogConcave_lintegral_right
+#print axioms WeakSimplex.measurable_isLogConcave_convolution
+#print axioms WeakSimplex.hasDerivAt_adaptivePotentialCoordinateLine
+#print axioms WeakSimplex.adaptivePotential_stationary_coordinate
+#print axioms WeakSimplex.adaptivePotential_compatibility
+#print axioms WeakSimplex.adaptivePotential_value_identity
+#print axioms WeakSimplex.exists_adaptiveWitnesses
+#print axioms
+  WeakSimplex.Vendor.StatLean.ProbabilityTheory.multivariateGaussian_withDensity_exp_shift
+#print axioms WeakSimplex.Vendor.StatLean.MeasureTheory.pi_withDensity_prod
+#print axioms
+  WeakSimplex.Vendor.StatLean.AsymptoticStatistics.Measure.withDensity_map_eq_map_withDensity
+#print axioms WeakSimplex.multivariateGaussian_withDensity_exp_shift
+#print axioms WeakSimplex.integral_exp_inner_sub_quadratic_mul
+#print axioms WeakSimplex.isLogConcave_centeredTiltedHalfLine
+#print axioms WeakSimplex.integral_mul_centeredTiltedHalfLine
+#print axioms WeakSimplex.AdaptiveWitnesses.preimage_adaptiveEndpoints_shift
+#print axioms WeakSimplex.CenteredProductProperty
+#print axioms WeakSimplex.lowerOrthant_ge_iid_of_posDef_of_centeredProduct
+#print axioms WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_eq_withDensity
+#print axioms WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_neg_invariant
+#print axioms WeakSimplex.symmetricRectangle_ge_iid_of_posDef
+#print axioms WeakSimplex.even_logConcave_product_of_posDef
+#print axioms WeakSimplex.measurable_normalizedSelfConvolution
+#print axioms WeakSimplex.normalizedSelfConvolution_nonneg
+#print axioms WeakSimplex.isBounded_range_normalizedSelfConvolution
+#print axioms WeakSimplex.isLogConcave_normalizedSelfConvolution
+#print axioms WeakSimplex.normalizedSelfConvolution_law
+#print axioms WeakSimplex.integral_normalizedSelfConvolution_eq_one
+#print axioms WeakSimplex.integral_mul_normalizedSelfConvolution_eq_zero
+#print axioms WeakSimplex.variance_id_normalizedSelfConvolution
+#print axioms WeakSimplex.map_multivariateGaussian_sumDifference_eq_prod
+#print axioms WeakSimplex.normalizedSelfConvolution_product_deficit_of_posDef
+#print axioms WeakSimplex.measurable_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.iteratedNormalizedSelfConvolution_nonneg
+#print axioms WeakSimplex.isBounded_range_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.isLogConcave_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.integral_iteratedNormalizedSelfConvolution_eq_one
+#print axioms WeakSimplex.integral_mul_iteratedNormalizedSelfConvolution_eq_zero
+#print axioms WeakSimplex.variance_id_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.isProbabilityMeasure_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.variance_id_withDensity_ofReal_pos
+#print axioms WeakSimplex.hasLaw_iteratedNormalizedSelfConvolution_dyadicSum
+#print axioms WeakSimplex.tendstoInDistribution_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.multivariateGaussian_eq_stdGaussian_withDensity
+#print axioms WeakSimplex.exists_pos_le_gaussianDensityRatio_on_box
+#print axioms WeakSimplex.mul_prod_setIntegral_le_integral_of_le_gaussianDensityRatio_on_box
+#print axioms
+  WeakSimplex.exists_eventual_pos_lower_bound_integral_iteratedNormalizedSelfConvolution
+#print axioms WeakSimplex.centered_product_of_posDef
+#print axioms WeakSimplex.lowerOrthant_ge_iid_of_posDef
+#print axioms WeakSimplex.lowerOrthant_ge_iid
+#print axioms WeakSimplex.coordinateMax
+#print axioms WeakSimplex.continuous_coordinateMax
+#print axioms WeakSimplex.coordinateMax_le_iff_mem_lowerOrthant
+#print axioms WeakSimplex.coordinateMax_tail_le_iid
+#print axioms WeakSimplex.gaussianMax_mgf_le_regularSimplex
+#print axioms WeakSimplex.regularSimplexGram
+#print axioms WeakSimplex.gramNormalization
+#print axioms WeakSimplex.gramMgf_normalization_identity
+#print axioms WeakSimplex.gramGaussianMax_mgf_le_regularSimplex
+#print axioms WeakSimplex.codeGram
+#print axioms WeakSimplex.codeGram_posSemidef
+#print axioms WeakSimplex.codeGram_isCorrelation
+#print axioms WeakSimplex.map_codeScore_stdGaussian
+#print axioms WeakSimplex.classLikelihood
+#print axioms WeakSimplex.classLikelihood_eq_exp_score
+#print axioms WeakSimplex.classLikelihoodMax
+#print axioms WeakSimplex.bayesValue
+#print axioms WeakSimplex.measurable_classLikelihood
+#print axioms WeakSimplex.measurable_classLikelihoodMax
+#print axioms WeakSimplex.integrable_classLikelihood
+#print axioms WeakSimplex.integrable_classLikelihoodMax
+#print axioms WeakSimplex.bayesValue_eq_gramMgf
+#print axioms WeakSimplex.mlDecoder
+#print axioms WeakSimplex.mlDecoder_maximizes
+#print axioms WeakSimplex.mlDecoder_le_of_maximizes
+#print axioms WeakSimplex.classLikelihood_mlDecoder_eq_max
+#print axioms WeakSimplex.measurable_mlDecoder
+#print axioms WeakSimplex.IsLikelihoodMaximizingDecoder
+#print axioms WeakSimplex.IsScoreMaximizingDecoder
+#print axioms WeakSimplex.IsScoreMaximizingDecoder.isLikelihoodMaximizing
+#print axioms WeakSimplex.decoderSuccessOf
+#print axioms WeakSimplex.decoderSuccess
+#print axioms WeakSimplex.decoderSuccessOf_eq_bayesValue
+#print axioms WeakSimplex.decoderSuccessOf_eq_of_isLikelihoodMaximizing
+#print axioms WeakSimplex.mlDecoder_success_eq_bayesValue
+#print axioms WeakSimplex.regularSimplexBayesValue
+#print axioms WeakSimplex.bayesValue_eq_regularSimplexBayesValue_of_codeGram
+#print axioms WeakSimplex.bayesValue_le_regularSimplex
+#print axioms WeakSimplex.weak_simplex
+#print axioms WeakSimplex.weak_simplex_of_scoreMaximizingDecoders
