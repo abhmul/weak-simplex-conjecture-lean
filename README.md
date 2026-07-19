@@ -3,7 +3,7 @@
 [![Lean CI](https://github.com/abhmul/weak-simplex-conjecture-lean/actions/workflows/lean_action_ci.yml/badge.svg?branch=main)](https://github.com/abhmul/weak-simplex-conjecture-lean/actions/workflows/lean_action_ci.yml)
 [![arXiv](https://img.shields.io/badge/arXiv-2607.14087-b31b1b.svg)](https://arxiv.org/abs/2607.14087)
 
-This repository contains a companion Lean 4 formalization of the Gaussian stochastic-domination theorem and its application to the Weak Simplex Conjecture in [*Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture*](https://arxiv.org/abs/2607.14087) by Abhijeet Mulgund. The development uses [mathlib](https://github.com/leanprover-community/mathlib4) and is pinned to Lean 4.31.0.
+This repository contains a companion Lean 4 formalization of the Gaussian stochastic-domination theorem and its application to the Weak Simplex Conjecture in [*Stochastic Domination of Gaussian Maxima: A Resolution of the Weak Simplex Conjecture*](https://arxiv.org/abs/2607.14087) by Abhijeet Mulgund. The development also certifies strictness and the equality cases needed for uniqueness of the regular-simplex Gram matrix. It uses [mathlib](https://github.com/leanprover-community/mathlib4) and is pinned to Lean 4.31.0.
 
 ## Main results
 
@@ -27,21 +27,27 @@ $$
 
 The comparison is for equal-threshold lower orthants; it does not assert an analogous inequality for arbitrary threshold vectors.
 
-| Paper result | Lean declaration | Source |
+The comparison is strict at every finite threshold when `R ≠ I`, and equality at any one finite threshold holds if and only if `R = I`. Consequently, every positive exponential moment of the Gaussian coordinate maximum is strictly smaller away from independence.
+
+| Result | Lean declaration | Source |
 |---|---|---|
 | Theorem 2.1, lower-orthant and stochastic-order forms | `lowerOrthant_ge_iid`, `coordinateMax_tail_le_iid` | [`Orthant/Singular.lean`](WeakSimplexConjectureLean/Orthant/Singular.lean), [`Maxima/StochasticOrder.lean`](WeakSimplexConjectureLean/Maxima/StochasticOrder.lean) |
+| Strict lower-orthant and equality characterization | `lowerOrthant_gt_iid_of_ne_one`, `lowerOrthant_eq_iid_iff` | [`Orthant/Strict.lean`](WeakSimplexConjectureLean/Orthant/Strict.lean) |
+| Strict Gaussian-maximum MGF comparison and equality characterization for `mu > 0` | `gaussianMax_mgf_lt_regularSimplex`, `gaussianMax_mgf_eq_regularSimplex_iff` | [`Maxima/StrictExponentialMoments.lean`](WeakSimplexConjectureLean/Maxima/StrictExponentialMoments.lean) |
 | Corollary 2.3, Gaussian-maximum MGF comparison | `gramGaussianMax_mgf_le_regularSimplex` | [`Coding/RegularSimplex.lean`](WeakSimplexConjectureLean/Coding/RegularSimplex.lean) |
+| Strict Gram-level MGF comparison and equality characterization for `lam > 0` | `gramGaussianMax_mgf_lt_regularSimplex`, `gramGaussianMax_mgf_eq_regularSimplex_iff` | [`Coding/RegularSimplex.lean`](WeakSimplexConjectureLean/Coding/RegularSimplex.lean) |
 | Corollary 2.4, Weak Simplex Conjecture | `weak_simplex`, `weak_simplex_of_scoreMaximizingDecoders` | [`Coding/WeakSimplex.lean`](WeakSimplexConjectureLean/Coding/WeakSimplex.lean) |
+| Operational strictness and equality characterization for `lam > 0` | `weak_simplex_strict`, `weak_simplex_eq_iff_codeGram_eq`, `weak_simplex_strict_of_scoreMaximizingDecoders`, `weak_simplex_eq_iff_codeGram_eq_of_scoreMaximizingDecoders` | [`Coding/WeakSimplex.lean`](WeakSimplexConjectureLean/Coding/WeakSimplex.lean) |
 
-The final coding theorem covers arbitrary measurable pointwise score-maximizing tie-breaking rules. The more general identity [`decoderSuccessOf_eq_bayesValue`](WeakSimplexConjectureLean/Coding/MLDecoder.lean) shows that every measurable likelihood-maximizing decoder has the same success probability, without assuming distinct codewords or null tie sets. The signal-strength parameter may be zero.
+The final coding theorems cover arbitrary measurable pointwise score-maximizing tie-breaking rules. The more general identity [`decoderSuccessOf_eq_bayesValue`](WeakSimplexConjectureLean/Coding/MLDecoder.lean) shows that every measurable likelihood-maximizing decoder has the same success probability, without assuming distinct codewords or null tie sets. The non-strict comparison permits zero signal strength. Strictness and uniqueness require `lam > 0`; uniqueness is false at `lam = 0` because every codebook has the same value there.
 
-A regular simplex is supplied to the final theorem through the exact Gram-matrix condition `codeGram simplex = regularSimplexGram (n + 1)`. The repository does not separately construct a coordinate realization of that Gram matrix.
+A regular simplex is supplied to the final theorem through the exact Gram-matrix condition `codeGram simplex = regularSimplexGram (n + 1)`. At positive signal strength, equality in Bayes/ML success is equivalent to `codeGram code = regularSimplexGram (n + 1)`, both for the deterministic tie-safe ML decoder and for arbitrary measurable score-maximizing decoders. This is uniqueness at the Gram-matrix level. A separate theorem identifying equal-Gram realizations up to orthogonal congruence is optional and is not part of the certified core result; the repository also does not separately construct a coordinate realization of the regular-simplex Gram matrix.
 
 ## Scope
 
-The formalization includes the proof chain for the equal-threshold stochastic comparison, its Gaussian-maximum MGF consequence, the Bayes/maximum-likelihood identity, and the Weak Simplex Conjecture. It includes adaptive tilting, the centered log-concave product inequality needed by the proof, positive-definite and singular covariance arguments, and measurable treatment of decoder ties.
+The formalization includes the proof chain for the equal-threshold stochastic comparison, its strict and equality cases, its Gaussian-maximum MGF consequences, the Bayes/maximum-likelihood identity, and the Weak Simplex Conjecture with Gram-level uniqueness. It includes adaptive tilting, the centered log-concave product inequality needed by the proof, positive-definite and singular covariance arguments, and measurable treatment of decoder ties.
 
-The paper's general monotone-function corollary, Simplex Mean Width corollary, and unrestricted finite-energy AWGN formula are not formalized here as standalone Lean theorems. The centered product inequality is formalized for positive-definite covariance; singular covariance is handled at the outer lower-orthant theorem.
+The paper's general monotone-function corollary, Simplex Mean Width corollary, and unrestricted finite-energy AWGN formula are not formalized here as standalone Lean theorems. The general centered product inequality remains restricted to positive-definite covariance. The uniqueness branch makes exactly two narrow departures from handling singular covariance only at the outer lower-orthant theorem: `centered_product_of_continuous` supplies a non-strict singular limit for continuous factors after the strict sum-difference step, yielding a strict theorem only for the specialized adaptive centered half-lines; and `exists_adaptiveWitnesses_of_weakSimplexCov` constructs singular adaptive witnesses as compact limits of positive-definite witnesses. These results do not constitute a generic singular centered-product strictness or equality theory.
 
 ## Building
 
@@ -68,6 +74,14 @@ python3 scripts/check_axiom_audit.py
 ```
 
 Every audited declaration uses exactly Lean's standard `propext`, `Classical.choice`, and `Quot.sound` axioms. Continuous integration also builds the public root, checks the production import graph, runs the trusted-source scanner, and verifies the provenance ledger.
+
+Deterministic floating-point sanity checks for the strict and equality cases are available separately:
+
+```bash
+python3 scripts/check_uniqueness_sanity.py
+```
+
+These diagnostics are not proof dependencies and are outside the trusted Lean development.
 
 ## Repository structure
 

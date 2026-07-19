@@ -5,13 +5,12 @@
 Before editing Lean code, read:
 
 1. `docs/weak_simplex_lean_formalization_report.v3-reassessment.md`;
-2. the current work-package card;
-3. the relevant mathematical source section;
-4. the repository-local generic Lean 4 skill at `.agents/skills/lean4/SKILL.md`.
+2. any governing extension plan named by the current work-package card;
+3. the current work-package card;
+4. the relevant mathematical source section;
+5. the repository-local generic Lean 4 skill at `.agents/skills/lean4/SKILL.md`.
 
-The reassessment report is the source of truth for theorem architecture, trust boundaries, module
-ownership, milestone order, and acceptance criteria. Do not replace it with a fresh whole-paper
-translation.
+The reassessment report governs the completed non-strict development. A later reviewed extension plan may supersede it only for the modules and interfaces that the extension identifies explicitly. Do not replace either architecture with a fresh whole-paper translation.
 
 ## Fixed environment
 
@@ -25,9 +24,7 @@ Run all Lean commands from the repository root.
 
 ## Trust policy
 
-The trusted result must contain no `sorry`, `admit`, project-defined `axiom`, or unaudited imported
-theorem. `Classical.choice`, `propext`, and `Quot.sound` are acceptable foundational axioms.
-Anything else requires an explicit review decision.
+The trusted result must contain no `sorry`, `admit`, project-defined `axiom`, or unaudited imported theorem. `Classical.choice`, `propext`, and `Quot.sound` are acceptable foundational axioms. Anything else requires an explicit review decision.
 
 Never:
 
@@ -45,21 +42,17 @@ Temporary upstream dependencies must be explicit theorem parameters or structure
 
 ## Mathematical architecture invariants
 
-1. State and prove the analytic theorem directly for an admissible covariance matrix `R`.
-   Codebook geometry belongs only in the final reduction.
+1. State and prove the analytic theorem directly for an admissible covariance matrix `R`. Codebook geometry belongs only in the final reduction.
 2. Implement adaptive tilting with the unconstrained `s`-space potential
 
    `Ψ̃_c(s) = ∑ i, ℓ(s i) - 1/2 * qform (R⁻¹) (H ∘ s - c • 1)`.
 
-   Do not formalize `H⁻¹`, `τ`, the auxiliary endpoint function `𝓕`, or the paper's `(q,v)`
-   objective unless the integration lead approves a fallback.
-3. Prove the centered log-concave product theorem only for positive-definite covariance.
-4. Handle singular covariance once, at the outer lower-orthant theorem.
-5. Defer measurable `argmax`; first formalize the Bayes/ML value as an integral of a pointwise
-   finite maximum.
+   Do not formalize `H⁻¹`, `τ`, the auxiliary endpoint function `𝓕`, or the paper's `(q,v)` objective unless the integration lead approves a fallback.
+3. Keep the general centered log-concave product theorem positive-definite. A governing extension may add a narrower singular theorem for a stated factor class, but must not silently broaden the existing theorem.
+4. Handle singular covariance at the outer lower-orthant theorem by default. Any extension-plan exception must be isolated in new modules, justified by an explicit acceptance theorem, and must leave the completed non-strict branch unchanged.
+5. Defer measurable `argmax`; first formalize the Bayes/ML value as an integral of a pointwise finite maximum.
 6. Freeze interfaces between the adaptive branch and the product branch before deep proof work.
-7. Keep raw matrix predicates transparent initially; bundle them only after measured evidence that
-   coercions are the dominant cost.
+7. Keep raw matrix predicates transparent initially; bundle them only after measured evidence that coercions are the dominant cost.
 
 ## Required workflow for each work package
 
@@ -74,8 +67,7 @@ Temporary upstream dependencies must be explicit theorem parameters or structure
 9. Add or update `Audit/Axioms.lean`, then inspect `#print axioms` for the acceptance theorem.
 10. Run a read-only review and report exact remaining blockers.
 
-A package is complete only when its acceptance theorem compiles, the production source contains no
-placeholders, the full build passes, and the axiom report is clean.
+A package is complete only when its acceptance theorem compiles, the production source contains no placeholders, the full build passes, and the axiom report is clean.
 
 ## Search order
 
@@ -93,20 +85,18 @@ Use Lean LSP MCP first:
 - `lean_diagnostic_messages`
 - `lean_code_actions`
 
-Then use source search in `.lake/packages/mathlib/Mathlib`. Search external repositories only after
-local mathlib search has been documented.
+Then use source search in `.lake/packages/mathlib/Mathlib`. Search external repositories only after local mathlib search has been documented.
 
 ## Build and audit commands
 
 ```bash
 lean --version
 lake --version
-lake build
+lake build --wfail
+lake env lean -DwarningAsError=true WeakSimplexConjectureLean.lean
 python3 scripts/check_axiom_audit.py
-
-grep -RInE '\b(sorry|admit)\b' WeakSimplexConjectureLean
-grep -RInE '^[[:space:]]*axiom[[:space:]]' WeakSimplexConjectureLean
-grep -RInE '^[[:space:]]*unsafe[[:space:]]' WeakSimplexConjectureLean
+python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 scripts/audit_trusted_lean.py --public-root WeakSimplexConjectureLean.lean WeakSimplexConjectureLean WeakSimplexConjectureLean.lean
 ```
 
 `Audit/Axioms.lean` must eventually inspect:
@@ -120,23 +110,14 @@ grep -RInE '^[[:space:]]*unsafe[[:space:]]' WeakSimplexConjectureLean
 #print axioms WeakSimplex.weak_simplex_of_scoreMaximizingDecoders
 ```
 
+Add the acceptance theorems required by every active extension plan; do not replace the existing audit entries.
+
 ## External-code policy
 
-Vendor only the minimal transitive source closure required for a theorem. Every vendored file must
-be listed in `PROVENANCE.md` with repository, commit, original path, license, local path, changes,
-and an axiom-audit result. Keep vendored declarations in a dedicated namespace until the port is
-accepted.
+Vendor only the minimal transitive source closure required for a theorem. Every vendored file must be listed in `PROVENANCE.md` with repository, commit, original path, license, local path, changes, and an axiom-audit result. Keep vendored declarations in a dedicated namespace until the port is accepted.
 
-Current candidates and priority:
-
-1. LeanPool/Isoperimetric Prékopa–Leindler port, because its Lean version is closest to 4.31;
-2. StatLean Gaussian shift and product-density helpers;
-3. StatLean Anderson/Prékopa code as an alternative or source of auxiliary lemmas;
-4. older isoperimetric code as a fallback source of proof ideas.
+Before searching externally, inspect the accepted minimal source closure under `WeakSimplexConjectureLean/Vendor/` and its ledger in `PROVENANCE.md`. If it does not provide the required interface, record the exact gap and consult the architecture report's external-candidate analysis before proposing another minimal audited port.
 
 ## Coordination
 
-Use disjoint file ownership or separate worktrees for parallel agents. One integration owner controls
-public declarations and production imports. Subagents return patches and logs; they do not merge or
-commit. Report a blocker with the exact goal, minimal reproduction, declarations searched, and the
-smallest missing interface theorem.
+Use disjoint file ownership or separate worktrees for parallel agents. One integration owner controls public declarations and production imports. Subagents return patches and logs; they do not merge or commit. Report a blocker with the exact goal, minimal reproduction, declarations searched, and the smallest missing interface theorem.

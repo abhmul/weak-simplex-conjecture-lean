@@ -99,6 +99,102 @@ theorem bayesValue_le_regularSimplex
       simpa using bayesValue_eq_regularSimplexBayesValue_of_codeGram
         hm simplex hsimplex lam hlam
 
+/-- Every unit code whose Gram matrix is non-simplex has strictly smaller Bayes value than every
+regular-simplex realization at positive signal strength. -/
+theorem bayesValue_lt_regularSimplex
+    {m n k : ℕ} (hm : 1 < m)
+    (code : Fin m → Coord n) (simplex : Fin m → Coord k)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram m)
+    (hcode_ne : codeGram code ≠ regularSimplexGram m)
+    (lam : ℝ) (hlam : 0 < lam) :
+    bayesValue (Nat.zero_lt_of_lt hm) code lam <
+      bayesValue (Nat.zero_lt_of_lt hm) simplex lam := by
+  let factor : ℝ := (1 / (m : ℝ)) * Real.exp (-lam ^ 2 / 2)
+  have hm0 : 0 < (m : ℝ) := by
+    exact_mod_cast (Nat.zero_lt_of_lt hm)
+  have hfactor : 0 < factor := by
+    exact mul_pos (one_div_pos.mpr hm0) (Real.exp_pos _)
+  have hcodeCorrelation : IsCorrelation (codeGram code) :=
+    codeGram_isCorrelation code hunit
+  have hsimplexUnit :=
+    unit_norm_of_codeGram_eq_regularSimplexGram hm simplex hsimplex
+  have hmgf := gramGaussianMax_mgf_lt_regularSimplex
+    hm (codeGram code) hcodeCorrelation hcode_ne lam hlam
+  calc
+    bayesValue (Nat.zero_lt_of_lt hm) code lam =
+        factor *
+          mgf (coordinateMax (Nat.zero_lt_of_lt hm))
+            (multivariateGaussian 0 (codeGram code)) lam := by
+      simpa only [factor] using
+        bayesValue_eq_gramMgf (Nat.zero_lt_of_lt hm) code hunit lam hlam.le
+    _ < factor *
+          mgf (coordinateMax (Nat.zero_lt_of_lt hm))
+            (multivariateGaussian 0 (regularSimplexGram m)) lam :=
+      mul_lt_mul_of_pos_left hmgf hfactor
+    _ = bayesValue (Nat.zero_lt_of_lt hm) simplex lam := by
+      symm
+      simpa only [factor, hsimplex] using
+        bayesValue_eq_gramMgf
+          (Nat.zero_lt_of_lt hm) simplex hsimplexUnit lam hlam.le
+
+/-- Equality in Bayes value at positive signal strength characterizes the regular-simplex Gram
+matrix. -/
+theorem bayesValue_eq_regularSimplex_iff
+    {m n k : ℕ} (hm : 1 < m)
+    (code : Fin m → Coord n) (simplex : Fin m → Coord k)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram m)
+    (lam : ℝ) (hlam : 0 < lam) :
+    bayesValue (Nat.zero_lt_of_lt hm) code lam =
+        bayesValue (Nat.zero_lt_of_lt hm) simplex lam ↔
+      codeGram code = regularSimplexGram m := by
+  let factor : ℝ := (1 / (m : ℝ)) * Real.exp (-lam ^ 2 / 2)
+  have hm0 : 0 < (m : ℝ) := by
+    exact_mod_cast (Nat.zero_lt_of_lt hm)
+  have hfactor : 0 < factor := by
+    exact mul_pos (one_div_pos.mpr hm0) (Real.exp_pos _)
+  have hcodeCorrelation : IsCorrelation (codeGram code) :=
+    codeGram_isCorrelation code hunit
+  have hsimplexUnit :=
+    unit_norm_of_codeGram_eq_regularSimplexGram hm simplex hsimplex
+  have hcodeValue :=
+    bayesValue_eq_gramMgf (Nat.zero_lt_of_lt hm) code hunit lam hlam.le
+  have hsimplexValue :=
+    bayesValue_eq_gramMgf
+      (Nat.zero_lt_of_lt hm) simplex hsimplexUnit lam hlam.le
+  constructor
+  · intro hvalue
+    apply (gramGaussianMax_mgf_eq_regularSimplex_iff
+      hm (codeGram code) hcodeCorrelation lam hlam).mp
+    apply mul_left_cancel₀ hfactor.ne'
+    calc
+      factor *
+          mgf (coordinateMax (Nat.zero_lt_of_lt hm))
+            (multivariateGaussian 0 (codeGram code)) lam =
+          bayesValue (Nat.zero_lt_of_lt hm) code lam := by
+        symm
+        simpa only [factor] using hcodeValue
+      _ = bayesValue (Nat.zero_lt_of_lt hm) simplex lam := hvalue
+      _ = factor *
+          mgf (coordinateMax (Nat.zero_lt_of_lt hm))
+            (multivariateGaussian 0 (regularSimplexGram m)) lam := by
+        simpa only [factor, hsimplex] using hsimplexValue
+  · intro hcode
+    calc
+      bayesValue (Nat.zero_lt_of_lt hm) code lam =
+          factor *
+            mgf (coordinateMax (Nat.zero_lt_of_lt hm))
+              (multivariateGaussian 0 (codeGram code)) lam := by
+        simpa only [factor] using hcodeValue
+      _ = factor *
+            mgf (coordinateMax (Nat.zero_lt_of_lt hm))
+              (multivariateGaussian 0 (regularSimplexGram m)) lam := by
+        rw [hcode]
+      _ = bayesValue (Nat.zero_lt_of_lt hm) simplex lam := by
+        symm
+        simpa only [factor, hsimplex] using hsimplexValue
+
 /-- Operational weak-simplex theorem for the deterministic tie-safe ML decoder. -/
 theorem weak_simplex
     {n : ℕ} (hn : 0 < n)
@@ -110,6 +206,36 @@ theorem weak_simplex
       decoderSuccess (Nat.succ_pos n) simplex lam := by
   rw [mlDecoder_success_eq_bayesValue, mlDecoder_success_eq_bayesValue]
   exact bayesValue_le_regularSimplex
+    (Nat.succ_lt_succ hn) code simplex hunit hsimplex lam hlam
+
+/-- A unit code whose Gram matrix is non-simplex has strictly smaller deterministic ML success at
+positive signal strength. -/
+theorem weak_simplex_strict
+    {n : ℕ} (hn : 0 < n)
+    (code simplex : Fin (n + 1) → Coord n)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram (n + 1))
+    (hcode_ne : codeGram code ≠ regularSimplexGram (n + 1))
+    (lam : ℝ) (hlam : 0 < lam) :
+    decoderSuccess (Nat.succ_pos n) code lam <
+      decoderSuccess (Nat.succ_pos n) simplex lam := by
+  rw [mlDecoder_success_eq_bayesValue, mlDecoder_success_eq_bayesValue]
+  exact bayesValue_lt_regularSimplex
+    (Nat.succ_lt_succ hn) code simplex hunit hsimplex hcode_ne lam hlam
+
+/-- Equality in deterministic ML success at positive signal strength characterizes the
+regular-simplex Gram matrix. -/
+theorem weak_simplex_eq_iff_codeGram_eq
+    {n : ℕ} (hn : 0 < n)
+    (code simplex : Fin (n + 1) → Coord n)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram (n + 1))
+    (lam : ℝ) (hlam : 0 < lam) :
+    decoderSuccess (Nat.succ_pos n) code lam =
+        decoderSuccess (Nat.succ_pos n) simplex lam ↔
+      codeGram code = regularSimplexGram (n + 1) := by
+  rw [mlDecoder_success_eq_bayesValue, mlDecoder_success_eq_bayesValue]
+  exact bayesValue_eq_regularSimplex_iff
     (Nat.succ_lt_succ hn) code simplex hunit hsimplex lam hlam
 
 /-- Operational weak-simplex theorem for arbitrary measurable score-maximizing
@@ -135,6 +261,60 @@ theorem weak_simplex_of_scoreMaximizingDecoders
       hsimplexDecoder_meas
       (hsimplexDecoder_max.isLikelihoodMaximizing hsimplexUnit hlam)]
   exact bayesValue_le_regularSimplex
+    (Nat.succ_lt_succ hn) code simplex hunit hsimplex lam hlam
+
+/-- Arbitrary measurable score-maximizing decoders have strictly smaller success for a non-simplex
+Gram matrix at positive signal strength. -/
+theorem weak_simplex_strict_of_scoreMaximizingDecoders
+    {n : ℕ} (hn : 0 < n)
+    (code simplex : Fin (n + 1) → Coord n)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram (n + 1))
+    (hcode_ne : codeGram code ≠ regularSimplexGram (n + 1))
+    (lam : ℝ) (hlam : 0 < lam)
+    (decoder simplexDecoder : Coord n → Fin (n + 1))
+    (hdecoder_meas : Measurable decoder)
+    (hdecoder_max : IsScoreMaximizingDecoder code decoder)
+    (hsimplexDecoder_meas : Measurable simplexDecoder)
+    (hsimplexDecoder_max : IsScoreMaximizingDecoder simplex simplexDecoder) :
+    decoderSuccessOf code lam decoder <
+      decoderSuccessOf simplex lam simplexDecoder := by
+  have hsimplexUnit :=
+    unit_norm_of_codeGram_eq_regularSimplexGram
+      (Nat.succ_lt_succ hn) simplex hsimplex
+  rw [decoderSuccessOf_eq_bayesValue (Nat.succ_pos n) code lam decoder
+      hdecoder_meas (hdecoder_max.isLikelihoodMaximizing hunit hlam.le),
+    decoderSuccessOf_eq_bayesValue (Nat.succ_pos n) simplex lam simplexDecoder
+      hsimplexDecoder_meas
+      (hsimplexDecoder_max.isLikelihoodMaximizing hsimplexUnit hlam.le)]
+  exact bayesValue_lt_regularSimplex
+    (Nat.succ_lt_succ hn) code simplex hunit hsimplex hcode_ne lam hlam
+
+/-- Equality in success for arbitrary measurable score-maximizing decoders at positive signal
+strength characterizes the regular-simplex Gram matrix. -/
+theorem weak_simplex_eq_iff_codeGram_eq_of_scoreMaximizingDecoders
+    {n : ℕ} (hn : 0 < n)
+    (code simplex : Fin (n + 1) → Coord n)
+    (hunit : ∀ i, ‖code i‖ = 1)
+    (hsimplex : codeGram simplex = regularSimplexGram (n + 1))
+    (lam : ℝ) (hlam : 0 < lam)
+    (decoder simplexDecoder : Coord n → Fin (n + 1))
+    (hdecoder_meas : Measurable decoder)
+    (hdecoder_max : IsScoreMaximizingDecoder code decoder)
+    (hsimplexDecoder_meas : Measurable simplexDecoder)
+    (hsimplexDecoder_max : IsScoreMaximizingDecoder simplex simplexDecoder) :
+    decoderSuccessOf code lam decoder =
+        decoderSuccessOf simplex lam simplexDecoder ↔
+      codeGram code = regularSimplexGram (n + 1) := by
+  have hsimplexUnit :=
+    unit_norm_of_codeGram_eq_regularSimplexGram
+      (Nat.succ_lt_succ hn) simplex hsimplex
+  rw [decoderSuccessOf_eq_bayesValue (Nat.succ_pos n) code lam decoder
+      hdecoder_meas (hdecoder_max.isLikelihoodMaximizing hunit hlam.le),
+    decoderSuccessOf_eq_bayesValue (Nat.succ_pos n) simplex lam simplexDecoder
+      hsimplexDecoder_meas
+      (hsimplexDecoder_max.isLikelihoodMaximizing hsimplexUnit hlam.le)]
+  exact bayesValue_eq_regularSimplex_iff
     (Nat.succ_lt_succ hn) code simplex hunit hsimplex lam hlam
 
 end WeakSimplex

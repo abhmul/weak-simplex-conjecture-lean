@@ -78,7 +78,8 @@ theorem map_multivariateGaussian_sumDifference_eq_prod
 private def coordProduct {m : ℕ} (h : Fin m → ℝ → ℝ) (x : Coord m) : ℝ :=
   ∏ i, h i (x i)
 
-private def fixedAverageFactor
+/-- The one-dimensional factor obtained after fixing the normalized average coordinate. -/
+def fixedAverageFactor
     (h : ℝ → ℝ) (u v : ℝ) : ℝ :=
   h ((u + v) / Real.sqrt 2) * h ((u - v) / Real.sqrt 2)
 
@@ -161,7 +162,8 @@ private theorem integrable_of_measurable_isBounded_range
   filter_upwards with x
   simpa [abs_of_nonneg hC_nonneg] using hC x
 
-private theorem integral_fixedAverageFactor_eq_normalizedSelfConvolution
+/-- Integrating a fixed-average factor gives normalized self-convolution. -/
+theorem integral_fixedAverageFactor_eq_normalizedSelfConvolution
     {h : ℝ → ℝ} (hh_meas : Measurable h) (hh_nonneg : ∀ x, 0 ≤ h x)
     (hh_bounded : Bornology.IsBounded (Set.range h)) (u : ℝ) :
     (∫ v, fixedAverageFactor h u v ∂gaussianReal 0 1) =
@@ -239,7 +241,8 @@ private theorem multivariateGaussian_prod_rotation {m : ℕ}
   apply IsGaussian.map_rotation_eq_self
   simp
 
-private def sumDifferenceProduct {m : ℕ}
+/-- The product of the fixed-average factors in all coordinates. -/
+def sumDifferenceProduct {m : ℕ}
     (h : Fin m → ℝ → ℝ) (p : Coord m × Coord m) : ℝ :=
   ∏ i, fixedAverageFactor (h i) (p.1 i) (p.2 i)
 
@@ -262,6 +265,76 @@ private theorem sumDifferenceProduct_eq_rotated {m : ℕ}
       (p.1 i + p.2 i) / Real.sqrt 2 := by
     rw [div_eq_mul_inv, mul_comm]
   rw [hsub, hadd, mul_comm]
+
+private theorem integrable_sumDifferenceProduct
+    {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (h : Fin m → ℝ → ℝ)
+    (hh_meas : ∀ i, Measurable (h i))
+    (hh_bounded : ∀ i, Bornology.IsBounded (Set.range (h i))) :
+    Integrable (sumDifferenceProduct h)
+      ((multivariateGaussian (0 : Coord m) R).prod
+        (multivariateGaussian (0 : Coord m) R)) := by
+  let μ : Measure (Coord m) := multivariateGaussian (0 : Coord m) R
+  let rot : Coord m × Coord m →L[ℝ] Coord m × Coord m :=
+    ContinuousLinearMap.rotation (-(Real.pi / 4))
+  let original : Coord m × Coord m → ℝ := fun p ↦
+    coordProduct h p.1 * coordProduct h p.2
+  have hcoord_int : Integrable (coordProduct h) μ :=
+    integrable_coord_product h hh_meas hh_bounded
+  have horiginal_int : Integrable original (μ.prod μ) := hcoord_int.mul_prod hcoord_int
+  have hrot_map : (μ.prod μ).map rot = μ.prod μ := by
+    simpa only [μ, rot] using multivariateGaussian_prod_rotation R
+  have hrot_pres : MeasurePreserving rot (μ.prod μ) (μ.prod μ) :=
+    ⟨rot.measurable, hrot_map⟩
+  have hcomp := hrot_pres.integrable_comp_of_integrable horiginal_int
+  have heq : sumDifferenceProduct h = original ∘ rot := by
+    funext p
+    simpa only [Function.comp_apply, original, rot] using
+      sumDifferenceProduct_eq_rotated h p
+  rw [heq]
+  exact hcomp
+
+/-- The iterated sum--difference integral is the square of the original product integral. -/
+theorem integral_integral_sumDifferenceProduct_eq_sq
+    {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (h : Fin m → ℝ → ℝ)
+    (hh_meas : ∀ i, Measurable (h i))
+    (hh_bounded : ∀ i, Bornology.IsBounded (Set.range (h i))) :
+    (∫ u, ∫ v, sumDifferenceProduct h (u, v)
+        ∂multivariateGaussian (0 : Coord m) R
+      ∂multivariateGaussian (0 : Coord m) R) =
+      (∫ x, ∏ i, h i (x i) ∂multivariateGaussian (0 : Coord m) R) ^ 2 := by
+  let μ : Measure (Coord m) := multivariateGaussian (0 : Coord m) R
+  let rot : Coord m × Coord m →L[ℝ] Coord m × Coord m :=
+    ContinuousLinearMap.rotation (-(Real.pi / 4))
+  let original : Coord m × Coord m → ℝ := fun p ↦
+    coordProduct h p.1 * coordProduct h p.2
+  have horiginal_meas : Measurable original := by
+    exact ((measurable_coordProduct h hh_meas).comp measurable_fst).mul
+      ((measurable_coordProduct h hh_meas).comp measurable_snd)
+  have hrot_map : (μ.prod μ).map rot = μ.prod μ := by
+    simpa only [μ, rot] using multivariateGaussian_prod_rotation R
+  have hsum_int : Integrable (sumDifferenceProduct h) (μ.prod μ) := by
+    simpa only [μ] using integrable_sumDifferenceProduct R h hh_meas hh_bounded
+  have hrotate_integral :
+      (∫ p, original p ∂μ.prod μ) = ∫ p, sumDifferenceProduct h p ∂μ.prod μ := by
+    calc
+      (∫ p, original p ∂μ.prod μ) =
+          ∫ p, original p ∂Measure.map rot (μ.prod μ) := by rw [hrot_map]
+      _ = ∫ p, original (rot p) ∂μ.prod μ :=
+        integral_map_of_stronglyMeasurable rot.measurable
+          horiginal_meas.stronglyMeasurable
+      _ = ∫ p, sumDifferenceProduct h p ∂μ.prod μ := by
+        apply integral_congr_ae
+        filter_upwards with p
+        exact (sumDifferenceProduct_eq_rotated h p).symm
+  calc
+    (∫ u, ∫ v, sumDifferenceProduct h (u, v) ∂μ ∂μ) =
+        ∫ p, sumDifferenceProduct h p ∂μ.prod μ :=
+      (integral_prod (sumDifferenceProduct h) hsum_int).symm
+    _ = ∫ p, original p ∂μ.prod μ := hrotate_integral.symm
+    _ = (∫ x, coordProduct h x ∂μ) ^ 2 := by
+      rw [integral_prod_mul]
+      ring
+    _ = (∫ x, ∏ i, h i (x i) ∂μ) ^ 2 := rfl
 
 private theorem fixedAverage_pointwise_deficit
     {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (hR : R.PosDef)
@@ -302,31 +375,10 @@ theorem normalizedSelfConvolution_product_deficit_of_posDef
         ∂multivariateGaussian (0 : Coord m) R := by
   classical
   let μ : Measure (Coord m) := multivariateGaussian (0 : Coord m) R
-  let rot : Coord m × Coord m →L[ℝ] Coord m × Coord m :=
-    ContinuousLinearMap.rotation (-(Real.pi / 4))
-  let original : Coord m × Coord m → ℝ := fun p ↦
-    coordProduct h p.1 * coordProduct h p.2
   let transformed : Coord m → ℝ := fun u ↦
     ∏ i, normalizedSelfConvolution (h i) (u i)
-  have hcoord_int : Integrable (coordProduct h) μ := by
-    exact integrable_coord_product h hh_meas hh_bounded
-  have horiginal_int : Integrable original (μ.prod μ) := by
-    exact hcoord_int.mul_prod hcoord_int
-  have horiginal_meas : Measurable original := by
-    exact ((measurable_coordProduct h hh_meas).comp measurable_fst).mul
-      ((measurable_coordProduct h hh_meas).comp measurable_snd)
-  have hrot_map : (μ.prod μ).map rot = μ.prod μ := by
-    simpa only [μ, rot] using multivariateGaussian_prod_rotation R
-  have hrot_pres : MeasurePreserving rot (μ.prod μ) (μ.prod μ) :=
-    ⟨rot.measurable, hrot_map⟩
   have hsum_int : Integrable (sumDifferenceProduct h) (μ.prod μ) := by
-    have hcomp := hrot_pres.integrable_comp_of_integrable horiginal_int
-    have heq : sumDifferenceProduct h = original ∘ rot := by
-      funext p
-      simpa only [Function.comp_apply, original, rot] using
-        sumDifferenceProduct_eq_rotated h p
-    rw [heq]
-    exact hcomp
+    simpa only [μ] using integrable_sumDifferenceProduct R h hh_meas hh_bounded
   have htransformed_int : Integrable transformed μ := by
     exact integrable_coord_product
       (fun i ↦ normalizedSelfConvolution (h i))
@@ -345,30 +397,13 @@ theorem normalizedSelfConvolution_product_deficit_of_posDef
       (∫ u, transformed u ∂μ) ≤
         ∫ u, ∫ v, sumDifferenceProduct h (u, v) ∂μ ∂μ :=
     integral_mono htransformed_int hiterated_int hpointwise
-  have hrotate_integral :
-      (∫ p, original p ∂μ.prod μ) =
-        ∫ p, sumDifferenceProduct h p ∂μ.prod μ := by
-    calc
-      (∫ p, original p ∂μ.prod μ) =
-          ∫ p, original p ∂Measure.map rot (μ.prod μ) := by rw [hrot_map]
-      _ = ∫ p, original (rot p) ∂μ.prod μ :=
-        integral_map_of_stronglyMeasurable rot.measurable
-          horiginal_meas.stronglyMeasurable
-      _ = ∫ p, sumDifferenceProduct h p ∂μ.prod μ := by
-        apply integral_congr_ae
-        filter_upwards with p
-        exact (sumDifferenceProduct_eq_rotated h p).symm
   calc
     (∫ u, ∏ i, normalizedSelfConvolution (h i) (u i)
         ∂multivariateGaussian (0 : Coord m) R) = ∫ u, transformed u ∂μ := rfl
     _ ≤ ∫ u, ∫ v, sumDifferenceProduct h (u, v) ∂μ ∂μ := hmono
-    _ = ∫ p, sumDifferenceProduct h p ∂μ.prod μ :=
-      (integral_prod (sumDifferenceProduct h) hsum_int).symm
-    _ = ∫ p, original p ∂μ.prod μ := hrotate_integral.symm
-    _ = (∫ x, coordProduct h x ∂μ) ^ 2 := by
-      rw [integral_prod_mul]
-      ring
     _ = (∫ x, ∏ i, h i (x i)
-        ∂multivariateGaussian (0 : Coord m) R) ^ 2 := rfl
+        ∂multivariateGaussian (0 : Coord m) R) ^ 2 := by
+      simpa only [μ] using
+        integral_integral_sumDifferenceProduct_eq_sq R h hh_meas hh_bounded
 
 end WeakSimplex

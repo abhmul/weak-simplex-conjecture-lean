@@ -1,0 +1,4 @@
+import WeakSimplexConjectureLean.Tilt.SingularWitnesses
+
+#print axioms WeakSimplex.sq_matrixMul_apply_le_qform_of_isCorrelation
+#print axioms WeakSimplex.exists_adaptiveWitnesses_of_weakSimplexCov

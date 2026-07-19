@@ -154,4 +154,34 @@ theorem gramNormalization
   exact ⟨normalizedCovariance_isWeakSimplexCov hm G hG,
     regularSimplexGram_isCorrelation hm, regularSimplex_normalizedCov_eq_one hm⟩
 
+/-- The normalization equals identity exactly at the regular-simplex Gram matrix. -/
+theorem gramNormalization_eq_one_iff
+    {m : ℕ} (hm : 1 < m)
+    (G : Matrix (Fin m) (Fin m) ℝ) :
+    ((((m : ℝ) - 1) / (m : ℝ)) • G +
+        (1 / (m : ℝ)) • allOnesMatrix m =
+      (1 : Matrix (Fin m) (Fin m) ℝ)) ↔
+      G = regularSimplexGram m := by
+  have hm0 : (m : ℝ) ≠ 0 := by
+    exact_mod_cast (Nat.ne_of_gt (Nat.zero_lt_of_lt hm))
+  have hm1 : (m : ℝ) - 1 ≠ 0 := by
+    have hmR : (1 : ℝ) < (m : ℝ) := by exact_mod_cast hm
+    linarith
+  constructor
+  · intro hnormalization
+    ext i j
+    have hij := congr_fun (congr_fun hnormalization i) j
+    simp only [Matrix.add_apply, Matrix.smul_apply, smul_eq_mul, allOnesMatrix_apply,
+      Matrix.one_apply] at hij
+    simp only [regularSimplexGram, Matrix.smul_apply, Matrix.sub_apply, Matrix.one_apply,
+      allOnesMatrix_apply, smul_eq_mul]
+    field_simp at hij ⊢
+    linarith
+  · rintro rfl
+    ext i j
+    simp only [regularSimplexGram, Matrix.add_apply, Matrix.smul_apply, Matrix.sub_apply,
+      Matrix.one_apply, allOnesMatrix_apply, smul_eq_mul]
+    field_simp
+    ring
+
 end WeakSimplex

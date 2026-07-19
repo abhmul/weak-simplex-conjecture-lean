@@ -1,14 +1,17 @@
+import WeakSimplexConjectureLean.Core.Correlation
 import WeakSimplexConjectureLean.LogConcavity.Indicators
 import WeakSimplexConjectureLean.LogConcavity.Prekopa
 import WeakSimplexConjectureLean.Vendor.StatLean.PiGaussian
+import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
+import Mathlib.Probability.CDF
 import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence
 import Mathlib.Probability.Distributions.Gaussian.Multivariate
 import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.PiProd
 
 noncomputable section
 
-open MeasureTheory ProbabilityTheory
-open scoped ENNReal MatrixOrder
+open Filter MeasureTheory ProbabilityTheory Set
+open scoped ENNReal MatrixOrder Topology
 
 namespace WeakSimplex
 
@@ -650,10 +653,10 @@ private theorem symmetricRectangle_step
     hR hdiag r] at hineq
   exact hineq
 
-private theorem symmetricRectangle_ge_iid_of_posDef_conditional
+private theorem symmetricRectangle_ge_iid_conditional
     (hpi : ∀ k : ℕ, Measure.pi (fun _ : Fin k ↦ gaussianReal 0 1) =
       (volume : Measure (Fin k → ℝ)).withDensity piGaussianDensity)
-    {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (hR : R.PosDef)
+    {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (hR : R.PosSemidef)
     (hdiag : ∀ i, R i i = 1) (r : Fin m → ℝ) (hr : ∀ i, 0 ≤ r i) :
     (∏ i, gaussianReal 0 1 (Set.Icc (-r i) (r i))) ≤
       multivariateGaussian (0 : Coord m) R (symmetricRectangle r) := by
@@ -667,11 +670,11 @@ private theorem symmetricRectangle_ge_iid_of_posDef_conditional
   | succ n ih =>
       let R' := R.submatrix Fin.castSucc Fin.castSucc
       let r' : Fin n → ℝ := fun i ↦ r (Fin.castSucc i)
-      have hR' : R'.PosDef := hR.submatrix (Fin.castSucc_injective n)
+      have hR' : R'.PosSemidef := hR.submatrix Fin.castSucc
       have hdiag' : ∀ i, R' i i = 1 := fun i ↦ hdiag (Fin.castSucc i)
       have hr' : ∀ i, 0 ≤ r' i := fun i ↦ hr (Fin.castSucc i)
       have hind := ih R' hR' hdiag' r' hr'
-      have hstep := symmetricRectangle_step hR.posSemidef hdiag r
+      have hstep := symmetricRectangle_step hR hdiag r
         (hr (Fin.last n)) (hpi (n + 1))
       rw [Fin.prod_univ_castSucc]
       calc
@@ -690,17 +693,393 @@ private theorem symmetricRectangle_ge_iid_of_posDef_conditional
               (symmetricRectangle r) := by
           simpa only [R', r'] using hstep
 
+/-- The symmetric rectangle comparison for an arbitrary correlation matrix. -/
+theorem symmetricRectangle_ge_iid
+    {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (hR : IsCorrelation R)
+    (r : Fin m → ℝ) (hr : ∀ i, 0 ≤ r i) :
+    (∏ i, gaussianReal 0 1 (Set.Icc (-r i) (r i))) ≤
+      multivariateGaussian (0 : Coord m) R (symmetricRectangle r) := by
+  apply symmetricRectangle_ge_iid_conditional
+    (fun k ↦ ?_) R hR.1 hR.2 r hr
+  change Measure.pi (fun _ : Fin k ↦ gaussianReal 0 1) =
+    (volume : Measure (Fin k → ℝ)).withDensity
+      (fun x ↦ ∏ i, gaussianPDF 0 1 (x i))
+  exact WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_eq_withDensity
+
 theorem symmetricRectangle_ge_iid_of_posDef
     {m : ℕ} (R : Matrix (Fin m) (Fin m) ℝ) (hR : R.PosDef)
     (hdiag : ∀ i, R i i = 1) (r : Fin m → ℝ) (hr : ∀ i, 0 ≤ r i) :
     (∏ i, gaussianReal 0 1 (Set.Icc (-r i) (r i))) ≤
       multivariateGaussian (0 : Coord m) R (symmetricRectangle r) := by
-  apply symmetricRectangle_ge_iid_of_posDef_conditional
-    (fun k ↦ ?_) R hR hdiag r hr
-  change Measure.pi (fun _ : Fin k ↦ gaussianReal 0 1) =
-    (volume : Measure (Fin k → ℝ)).withDensity
-      (fun x ↦ ∏ i, gaussianPDF 0 1 (x i))
-  exact WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_eq_withDensity
+  exact symmetricRectangle_ge_iid R ⟨hR.posSemidef, hdiag⟩ r hr
+
+private theorem tendsto_measure_Iic_atBot_of_probability
+    (μ : Measure ℝ) [IsProbabilityMeasure μ] :
+    Tendsto (fun x ↦ μ (Iic x)) atBot (𝓝 0) := by
+  have h := ENNReal.continuous_ofReal.continuousAt.tendsto.comp (tendsto_cdf_atBot μ)
+  simp only [Function.comp_def, ENNReal.ofReal_zero] at h
+  change Tendsto (fun x ↦ ENNReal.ofReal (cdf μ x)) atBot (𝓝 0) at h
+  simpa only [ofReal_cdf] using h
+
+private theorem gaussianReal_Icc_pos {r : ℝ} (hr : 0 < r) :
+    0 < gaussianReal 0 1 (Icc (-r) r) := by
+  letI : Measure.IsOpenPosMeasure (gaussianReal 0 1) :=
+    (gaussianReal_absolutelyContinuous' 0 (by norm_num : (1 : NNReal) ≠ 0)).isOpenPosMeasure
+  refine ((Measure.measure_Ioo_pos (gaussianReal 0 1)).2 ?_).trans_le
+    (measure_mono Ioo_subset_Icc_self)
+  linarith
+
+private theorem measure_Icc_mul_lintegral_lt_setLIntegral_of_antitone
+    {q : ℝ → ℝ≥0∞} (hq_meas : Measurable q)
+    (hanti : AntitoneOn q (Ici 0)) (hq_even : ∀ x, q (-x) = q x)
+    {rad : ℝ} (hrad : 0 < rad)
+    (hfinite : (∫⁻ x, q x ∂gaussianReal 0 1) ≠ ∞)
+    (hpositive : 0 < ∫⁻ x, q x ∂gaussianReal 0 1)
+    (htend : Tendsto q atTop (𝓝 0)) :
+    gaussianReal 0 1 (Icc (-rad) rad) * (∫⁻ x, q x ∂gaussianReal 0 1) <
+      ∫⁻ x in Icc (-rad) rad, q x ∂gaussianReal 0 1 := by
+  let μ := gaussianReal 0 1
+  let A := Icc (-rad) rad
+  let c := q rad
+  letI : Measure.IsOpenPosMeasure μ :=
+    (gaussianReal_absolutelyContinuous' 0 (by norm_num : (1 : NNReal) ≠ 0)).isOpenPosMeasure
+  have hA : MeasurableSet A := measurableSet_Icc
+  have hAc : MeasurableSet Aᶜ := hA.compl
+  have hApos : 0 < μ A := by
+    refine ((Measure.measure_Ioo_pos μ).2 ?_).trans_le (measure_mono Ioo_subset_Icc_self)
+    linarith
+  have hAcpos : 0 < μ Aᶜ := by
+    have hsub : Ioo (rad + 1) (rad + 2) ⊆ Aᶜ := by
+      intro x hx hxa
+      exact (not_lt_of_ge hxa.2) (lt_trans (by linarith) hx.1)
+    exact ((Measure.measure_Ioo_pos μ).2 (by linarith)).trans_le (measure_mono hsub)
+  have hAlt : μ A < 1 := by
+    have hAle : μ A ≤ 1 := by
+      simpa using measure_mono (μ := μ) (Set.subset_univ A)
+    exact lt_of_le_of_ne hAle fun hEq ↦
+      hAcpos.ne' ((prob_compl_eq_zero_iff hA).2 hEq)
+  have habs (x : ℝ) : q |x| = q x := by
+    by_cases hx : 0 ≤ x
+    · rw [abs_of_nonneg hx]
+    · rw [abs_of_nonpos (le_of_not_ge hx), hq_even]
+  have hinside : ∀ x ∈ A, c ≤ q x := by
+    intro x hx
+    rw [← habs x]
+    exact hanti (abs_nonneg x) hrad.le ((abs_le).2 hx)
+  have houtside : ∀ x ∉ A, q x ≤ c := by
+    intro x hx
+    rw [← habs x]
+    have hnot : ¬ |x| ≤ rad := fun h ↦ hx ((abs_le).1 h)
+    exact hanti hrad.le (abs_nonneg x) (lt_of_not_ge hnot).le
+  have hI : c * μ A ≤ ∫⁻ x in A, q x ∂μ := by
+    simpa using setLIntegral_mono hq_meas hinside
+  have hIlt : (∫⁻ x in A, q x ∂μ) < ∞ :=
+    lt_of_le_of_lt (setLIntegral_le_lintegral A q) (lt_top_iff_ne_top.2 hfinite)
+  by_cases hc : c = 0
+  · have hJzero : (∫⁻ x in Aᶜ, q x ∂μ) = 0 := by
+      apply setLIntegral_eq_zero hAc
+      intro x hx
+      exact le_antisymm (by simpa [hc] using houtside x (by simpa using hx)) bot_le
+    have hsplit :
+        (∫⁻ x in A, q x ∂μ) + ∫⁻ x in Aᶜ, q x ∂μ = ∫⁻ x, q x ∂μ :=
+      lintegral_add_compl q hA
+    have hIpos : 0 < ∫⁻ x in A, q x ∂μ := by
+      rw [← hsplit, hJzero, add_zero] at hpositive
+      exact hpositive
+    calc
+      μ A * (∫⁻ x, q x ∂μ) = μ A * (∫⁻ x in A, q x ∂μ) := by
+        rw [← hsplit, hJzero, add_zero]
+      _ < ∫⁻ x in A, q x ∂μ := by
+        simpa using ENNReal.mul_lt_mul_left hIpos.ne' hIlt.ne hAlt
+  · have hcpos : 0 < c := bot_lt_iff_ne_bot.2 hc
+    obtain ⟨b, hqb, hrb⟩ : ∃ b : ℝ, q b < c ∧ rad < b :=
+      (htend.eventually (eventually_lt_nhds hcpos) |>.and
+        (eventually_gt_atTop rad)).exists
+    let B := Ioo b (b + 1)
+    have hBsub : B ⊆ Aᶜ := by
+      intro x hx hxa
+      exact (not_lt_of_ge hxa.2) (hrb.trans hx.1)
+    have hBpos : (μ.restrict Aᶜ) B ≠ 0 := by
+      rw [Measure.restrict_apply measurableSet_Ioo, Set.inter_eq_left.2 hBsub]
+      exact ((Measure.measure_Ioo_pos μ).2 (by linarith)).ne'
+    have hJlt : (∫⁻ x in Aᶜ, q x ∂μ) < c * μ Aᶜ := by
+      have hJfinite : (∫⁻ x, q x ∂μ.restrict Aᶜ) ≠ ∞ :=
+        (lt_of_le_of_lt (setLIntegral_le_lintegral Aᶜ q)
+          (lt_top_iff_ne_top.2 hfinite)).ne
+      have hle : q ≤ᵐ[μ.restrict Aᶜ] fun _ ↦ c := by
+        filter_upwards [ae_restrict_mem hAc] with x hx
+        exact houtside x (by simpa using hx)
+      have hstrict : ∀ᵐ x ∂μ.restrict Aᶜ, x ∈ B → q x < c := by
+        filter_upwards with x
+        intro hx
+        change b < x ∧ x < b + 1 at hx
+        exact lt_of_le_of_lt
+          (hanti (by simp only [mem_Ici]; linarith)
+            (by simp only [mem_Ici]; linarith) hx.1.le) hqb
+      have h := lintegral_strict_mono_of_ae_le_of_ae_lt_on
+        (μ := μ.restrict Aᶜ) measurable_const.aemeasurable hJfinite hle hBpos hstrict
+      simpa [lintegral_const, Measure.restrict_apply] using h
+    have hmul :
+        μ A * (∫⁻ x in Aᶜ, q x ∂μ) < μ A * (c * μ Aᶜ) :=
+      ENNReal.mul_lt_mul_right hApos.ne' (measure_ne_top μ A) hJlt
+    have hsplit :
+        (∫⁻ x in A, q x ∂μ) + ∫⁻ x in Aᶜ, q x ∂μ = ∫⁻ x, q x ∂μ :=
+      lintegral_add_compl q hA
+    calc
+      μ A * (∫⁻ x, q x ∂μ) =
+          μ A * ((∫⁻ x in A, q x ∂μ) + ∫⁻ x in Aᶜ, q x ∂μ) := by rw [hsplit]
+      _ = μ A * (∫⁻ x in A, q x ∂μ) +
+          μ A * (∫⁻ x in Aᶜ, q x ∂μ) := mul_add _ _ _
+      _ < μ A * (∫⁻ x in A, q x ∂μ) + μ A * (c * μ Aᶜ) :=
+        ENNReal.add_lt_add_left
+          (ENNReal.mul_ne_top (measure_ne_top μ A) hIlt.ne) hmul
+      _ = μ A * (∫⁻ x in A, q x ∂μ) + (c * μ A) * μ Aᶜ := by ac_rfl
+      _ ≤ μ A * (∫⁻ x in A, q x ∂μ) +
+          (∫⁻ x in A, q x ∂μ) * μ Aᶜ := by gcongr
+      _ = (∫⁻ x in A, q x ∂μ) * (μ A + μ Aᶜ) := by
+        rw [mul_add]
+        ac_rfl
+      _ = ∫⁻ x in A, q x ∂μ := by
+        rw [measure_add_measure_compl hA, measure_univ, mul_one]
+
+private theorem regressionShiftMass_comp_tendsto_atTop_of_mul_slope_pos
+    {n : ℕ} (R : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ) (rad : Fin n → ℝ)
+    (j : Fin n) (e : ℝ) (he : 0 < e * regressionSlope R j) :
+    Tendsto (fun t ↦ regressionShiftMass R rad (e * t)) atTop (𝓝 0) := by
+  let ν := Measure.map (regressionResidualCLM R)
+    (multivariateGaussian (0 : Coord (n + 1)) R)
+  let p : (Fin n → ℝ) → ℝ := fun y ↦ y j
+  let η := Measure.map p ν
+  letI : IsProbabilityMeasure ν :=
+    Measure.isProbabilityMeasure_map (regressionResidualCLM R).measurable.aemeasurable
+  letI : IsProbabilityMeasure η :=
+    Measure.isProbabilityMeasure_map (measurable_pi_apply j).aemeasurable
+  have harg :
+      Tendsto (fun t : ℝ ↦ rad j - t * (e * regressionSlope R j)) atTop atBot := by
+    rw [tendsto_atBot]
+    intro z
+    filter_upwards [eventually_ge_atTop
+      ((rad j - z) / (e * regressionSlope R j))] with t ht
+    have hmul := mul_le_mul_of_nonneg_right ht he.le
+    rw [div_mul_cancel₀ _ he.ne'] at hmul
+    linarith
+  have hbound :
+      Tendsto (fun t : ℝ ↦ η (Iic (rad j - t * (e * regressionSlope R j))))
+        atTop (𝓝 0) :=
+    (tendsto_measure_Iic_atBot_of_probability η).comp harg
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hbound
+  · exact Filter.Eventually.of_forall fun _ ↦ bot_le
+  · filter_upwards with t
+    rw [regressionShiftMass,
+      Measure.map_apply (measurable_pi_apply j) measurableSet_Iic]
+    apply measure_mono
+    intro y hy
+    change y j ≤ rad j - t * (e * regressionSlope R j)
+    have hj := hy j
+    change y j + (e * t) * regressionSlope R j ∈ Icc (-rad j) (rad j) at hj
+    nlinarith [hj.2]
+
+private theorem regressionShiftMass_tendsto_atTop_of_slope_ne_zero
+    {n : ℕ} (R : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ) (rad : Fin n → ℝ)
+    (hpi : Measure.pi (fun _ : Fin (n + 1) ↦ gaussianReal 0 1) =
+      (volume : Measure (Fin (n + 1) → ℝ)).withDensity piGaussianDensity)
+    (hslope : regressionSlope R ≠ 0) :
+    Tendsto (regressionShiftMass R rad) atTop (𝓝 0) := by
+  obtain ⟨j, hj⟩ : ∃ j, regressionSlope R j ≠ 0 := by
+    by_contra h
+    apply hslope
+    funext j
+    by_contra hj
+    exact h ⟨j, hj⟩
+  by_cases hjpos : 0 < regressionSlope R j
+  · simpa using regressionShiftMass_comp_tendsto_atTop_of_mul_slope_pos
+      R rad j 1 (by simpa using hjpos)
+  · have hjneg : regressionSlope R j < 0 :=
+      lt_of_le_of_ne (le_of_not_gt hjpos) hj
+    have ht := regressionShiftMass_comp_tendsto_atTop_of_mul_slope_pos
+      R rad j (-1) (by nlinarith)
+    have heq :
+        (fun t ↦ regressionShiftMass R rad ((-1 : ℝ) * t)) =
+          regressionShiftMass R rad := by
+      funext t
+      simpa using regressionShiftMass_even R rad hpi t
+    rw [heq] at ht
+    exact ht
+
+private theorem eq_one_of_submatrix_eq_one_of_regressionSlope_eq_zero
+    {n : ℕ} {R : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ}
+    (hR : IsCorrelation R)
+    (hsub : R.submatrix Fin.castSucc Fin.castSucc = 1)
+    (hslope : regressionSlope R = 0) :
+    R = 1 := by
+  have hsymm : R.IsSymm := Matrix.isHermitian_iff_isSymm.mp hR.1.isHermitian
+  have hcol (i : Fin n) : R (Fin.castSucc i) (Fin.last n) = 0 := by
+    have h := congrFun hslope i
+    simpa only [regressionSlope, Pi.zero_apply] using h
+  apply Matrix.ext
+  intro i j
+  refine Fin.lastCases ?_ (fun i ↦ ?_) i
+  · refine Fin.lastCases ?_ (fun j ↦ ?_) j
+    · simpa using hR.2 (Fin.last n)
+    · rw [Matrix.one_apply, if_neg (Fin.castSucc_ne_last j).symm]
+      exact (hsymm.apply (Fin.castSucc j) (Fin.last n)).trans (hcol j)
+  · refine Fin.lastCases ?_ (fun j ↦ ?_) j
+    · simpa using hcol i
+    · have h := congrFun (congrFun hsub i) j
+      change R (Fin.castSucc i) (Fin.castSucc j) =
+        (1 : Matrix (Fin n) (Fin n) ℝ) i j at h
+      simpa only [Matrix.one_apply, Fin.castSucc_inj] using h
+
+private theorem symmetricRectangle_step_strict
+    {n : ℕ} {R : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ}
+    (hR : IsCorrelation R) (hslope : regressionSlope R ≠ 0)
+    (rad : Fin (n + 1) → ℝ) (hrad : ∀ i, 0 < rad i)
+    (hpi : Measure.pi (fun _ : Fin (n + 1) ↦ gaussianReal 0 1) =
+      (volume : Measure (Fin (n + 1) → ℝ)).withDensity piGaussianDensity) :
+    gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+        multivariateGaussian (0 : Coord n) (R.submatrix Fin.castSucc Fin.castSucc)
+          (symmetricRectangle (fun i ↦ rad (Fin.castSucc i))) <
+      multivariateGaussian (0 : Coord (n + 1)) R (symmetricRectangle rad) := by
+  let rad' : Fin n → ℝ := fun i ↦ rad (Fin.castSucc i)
+  let q := regressionShiftMass R rad'
+  have hq := measurable_isLogConcave_regressionShiftMass R rad' hpi
+  have heven := regressionShiftMass_even R rad' hpi
+  have hanti := hq.2.antitoneOn_nonneg_of_even heven
+  have hfinite : (∫⁻ t, q t ∂gaussianReal 0 1) ≠ ∞ := by
+    rw [lintegral_regressionShiftMass_eq_marginal_symmetricRectangle hR.1 hR.2]
+    exact measure_ne_top _ _
+  have hpositive : 0 < ∫⁻ t, q t ∂gaussianReal 0 1 := by
+    let R' := R.submatrix Fin.castSucc Fin.castSucc
+    have hR' : IsCorrelation R' :=
+      ⟨hR.1.submatrix Fin.castSucc, fun i ↦ hR.2 (Fin.castSucc i)⟩
+    have hprod :
+        0 < ∏ i : Fin n, gaussianReal 0 1 (Icc (-rad' i) (rad' i)) := by
+      rw [pos_iff_ne_zero, Finset.prod_ne_zero_iff]
+      exact fun i _ ↦ (gaussianReal_Icc_pos (hrad (Fin.castSucc i))).ne'
+    rw [lintegral_regressionShiftMass_eq_marginal_symmetricRectangle hR.1 hR.2]
+    exact hprod.trans_le
+      (symmetricRectangle_ge_iid R' hR' rad' fun i ↦ (hrad (Fin.castSucc i)).le)
+  have htend := regressionShiftMass_tendsto_atTop_of_slope_ne_zero R rad' hpi hslope
+  have hineq := measure_Icc_mul_lintegral_lt_setLIntegral_of_antitone
+    hq.1 hanti heven (hrad (Fin.last n)) hfinite hpositive htend
+  change gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+      (∫⁻ t, q t ∂gaussianReal 0 1) <
+        ∫⁻ t in Icc (-rad (Fin.last n)) (rad (Fin.last n)),
+          q t ∂gaussianReal 0 1 at hineq
+  rw [lintegral_regressionShiftMass_eq_marginal_symmetricRectangle hR.1 hR.2] at hineq
+  rw [← multivariateGaussian_symmetricRectangle_eq_setLIntegral_regressionShiftMass
+    hR.1 hR.2 rad] at hineq
+  simpa only [q, rad'] using hineq
+
+/-- A finite nondegenerate symmetric rectangle is strict unless `R = I`. -/
+theorem symmetricRectangle_gt_iid_of_ne_one
+    {m : ℕ}
+    (R : Matrix (Fin m) (Fin m) ℝ)
+    (hR : IsCorrelation R)
+    (hRne : R ≠ (1 : Matrix (Fin m) (Fin m) ℝ))
+    (rad : Fin m → ℝ)
+    (hrad : ∀ i, 0 < rad i) :
+    (∏ i, gaussianReal 0 1 (Set.Icc (-rad i) (rad i))) <
+      multivariateGaussian (0 : Coord m) R (symmetricRectangle rad) := by
+  induction m with
+  | zero =>
+      exact (hRne (Subsingleton.elim R 1)).elim
+  | succ n ih =>
+      let R' := R.submatrix Fin.castSucc Fin.castSucc
+      let rad' : Fin n → ℝ := fun i ↦ rad (Fin.castSucc i)
+      have hR' : IsCorrelation R' :=
+        ⟨hR.1.submatrix Fin.castSucc, fun i ↦ hR.2 (Fin.castSucc i)⟩
+      have hrad' : ∀ i, 0 < rad' i := fun i ↦ hrad (Fin.castSucc i)
+      have hlastpos :
+          0 < gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) :=
+        gaussianReal_Icc_pos (hrad (Fin.last n))
+      have hpi : Measure.pi (fun _ : Fin (n + 1) ↦ gaussianReal 0 1) =
+          (volume : Measure (Fin (n + 1) → ℝ)).withDensity piGaussianDensity := by
+        change Measure.pi (fun _ : Fin (n + 1) ↦ gaussianReal 0 1) =
+          (volume : Measure (Fin (n + 1) → ℝ)).withDensity
+            (fun x ↦ ∏ i, gaussianPDF 0 1 (x i))
+        exact WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_eq_withDensity
+      rw [Fin.prod_univ_castSucc]
+      by_cases hslope : regressionSlope R = 0
+      · have hR'ne : R' ≠ (1 : Matrix (Fin n) (Fin n) ℝ) := fun h ↦
+          hRne (eq_one_of_submatrix_eq_one_of_regressionSlope_eq_zero hR h hslope)
+        have hind := ih R' hR' hR'ne rad' hrad'
+        have hmul :
+            gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+                (∏ i : Fin n, gaussianReal 0 1 (Icc (-rad' i) (rad' i))) <
+              gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+                multivariateGaussian (0 : Coord n) R' (symmetricRectangle rad') :=
+          ENNReal.mul_lt_mul_right hlastpos.ne'
+            (measure_ne_top (gaussianReal 0 1) _) hind
+        have hstep := symmetricRectangle_step hR.1 hR.2 rad
+          (hrad (Fin.last n)).le hpi
+        calc
+          (∏ i : Fin n, gaussianReal 0 1
+                (Icc (-rad (Fin.castSucc i)) (rad (Fin.castSucc i)))) *
+              gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) =
+              gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+                (∏ i : Fin n, gaussianReal 0 1 (Icc (-rad' i) (rad' i))) := by
+            simp only [rad']
+            ac_rfl
+          _ < gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+              multivariateGaussian (0 : Coord n) R' (symmetricRectangle rad') := hmul
+          _ ≤ multivariateGaussian (0 : Coord (n + 1)) R
+              (symmetricRectangle rad) := by
+            simpa only [R', rad'] using hstep
+      · have hind := symmetricRectangle_ge_iid R' hR' rad' fun i ↦ (hrad' i).le
+        have hmul :
+            gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+                (∏ i : Fin n, gaussianReal 0 1 (Icc (-rad' i) (rad' i))) ≤
+              gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+                multivariateGaussian (0 : Coord n) R' (symmetricRectangle rad') :=
+          mul_le_mul_right hind _
+        have hstep := symmetricRectangle_step_strict hR hslope rad hrad hpi
+        calc
+          (∏ i : Fin n, gaussianReal 0 1
+                (Icc (-rad (Fin.castSucc i)) (rad (Fin.castSucc i)))) *
+              gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) =
+              gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+                (∏ i : Fin n, gaussianReal 0 1 (Icc (-rad' i) (rad' i))) := by
+            simp only [rad']
+            ac_rfl
+          _ ≤ gaussianReal 0 1 (Icc (-rad (Fin.last n)) (rad (Fin.last n))) *
+              multivariateGaussian (0 : Coord n) R' (symmetricRectangle rad') := hmul
+          _ < multivariateGaussian (0 : Coord (n + 1)) R
+              (symmetricRectangle rad) := by
+            simpa only [R', rad'] using hstep
+
+private theorem multivariateGaussian_one_symmetricRectangle
+    {m : ℕ} (rad : Fin m → ℝ) :
+    multivariateGaussian (0 : Coord m) (1 : Matrix (Fin m) (Fin m) ℝ)
+        (symmetricRectangle rad) =
+      ∏ i, gaussianReal 0 1 (Icc (-rad i) (rad i)) := by
+  rw [multivariateGaussian_zero_one, ← map_pi_eq_stdGaussian]
+  rw [Measure.map_apply (by fun_prop) (measurableSet_symmetricRectangle rad)]
+  rw [show (WithLp.toLp 2) ⁻¹' symmetricRectangle rad =
+      Set.pi Set.univ (fun i : Fin m ↦ Icc (-rad i) (rad i)) by
+    ext x
+    simp only [Set.mem_preimage, symmetricRectangle, Set.mem_setOf_eq, Set.mem_pi,
+      Set.mem_univ, true_implies]]
+  rw [Measure.pi_pi]
+
+/-- Equality for finite positive radii characterizes the identity covariance. -/
+theorem symmetricRectangle_eq_iid_iff
+    {m : ℕ}
+    (R : Matrix (Fin m) (Fin m) ℝ)
+    (hR : IsCorrelation R)
+    (rad : Fin m → ℝ)
+    (hrad : ∀ i, 0 < rad i) :
+    multivariateGaussian (0 : Coord m) R (symmetricRectangle rad) =
+        ∏ i, gaussianReal 0 1 (Set.Icc (-rad i) (rad i)) ↔
+      R = (1 : Matrix (Fin m) (Fin m) ℝ) := by
+  constructor
+  · intro hEq
+    by_contra hRne
+    exact (not_lt_of_ge hEq.le)
+      (symmetricRectangle_gt_iid_of_ne_one R hR hRne rad hrad)
+  · intro hEq
+    subst R
+    exact multivariateGaussian_one_symmetricRectangle rad
 
 
 end WeakSimplex

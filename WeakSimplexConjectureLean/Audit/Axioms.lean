@@ -9,6 +9,7 @@ output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 
 #print axioms WeakSimplex.measurableSet_lowerOrthant
 #print axioms WeakSimplex.truncated_second_moment
+#print axioms WeakSimplex.H_pos
 #print axioms WeakSimplex.localLogMass_tendsto_atBot
 #print axioms WeakSimplex.rankOne_inverse_bound
 #print axioms WeakSimplex.exists_adaptivePotential_maximizer
@@ -23,6 +24,8 @@ output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 #print axioms WeakSimplex.adaptivePotential_compatibility
 #print axioms WeakSimplex.adaptivePotential_value_identity
 #print axioms WeakSimplex.exists_adaptiveWitnesses
+#print axioms WeakSimplex.sq_matrixMul_apply_le_qform_of_isCorrelation
+#print axioms WeakSimplex.exists_adaptiveWitnesses_of_weakSimplexCov
 #print axioms
   WeakSimplex.Vendor.StatLean.ProbabilityTheory.multivariateGaussian_withDensity_exp_shift
 #print axioms WeakSimplex.Vendor.StatLean.MeasureTheory.pi_withDensity_prod
@@ -32,11 +35,27 @@ output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 #print axioms WeakSimplex.integral_exp_inner_sub_quadratic_mul
 #print axioms WeakSimplex.isLogConcave_centeredTiltedHalfLine
 #print axioms WeakSimplex.integral_mul_centeredTiltedHalfLine
+#print axioms WeakSimplex.measurable_normalizedCenteredTiltedHalfLine
+#print axioms WeakSimplex.normalizedCenteredTiltedHalfLine_nonneg
+#print axioms WeakSimplex.integrable_normalizedCenteredTiltedHalfLine
+#print axioms WeakSimplex.isBounded_range_normalizedCenteredTiltedHalfLine
+#print axioms WeakSimplex.isLogConcave_normalizedCenteredTiltedHalfLine
+#print axioms WeakSimplex.integral_normalizedCenteredTiltedHalfLine
+#print axioms WeakSimplex.integral_mul_normalizedCenteredTiltedHalfLine
+#print axioms WeakSimplex.normalizedCenteredTiltedHalfLine_product
+#print axioms
+  WeakSimplex.continuous_normalizedSelfConvolution_normalizedCenteredTiltedHalfLine
 #print axioms WeakSimplex.AdaptiveWitnesses.preimage_adaptiveEndpoints_shift
+#print axioms WeakSimplex.adaptiveProduct_mass_eq
+#print axioms WeakSimplex.adaptiveValue_exp_bound
+#print axioms WeakSimplex.lowerOrthant_eq_adaptiveProduct
 #print axioms WeakSimplex.CenteredProductProperty
 #print axioms WeakSimplex.lowerOrthant_ge_iid_of_posDef_of_centeredProduct
 #print axioms WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_eq_withDensity
 #print axioms WeakSimplex.Vendor.StatLean.AsymptoticStatistics.pi_gaussianReal_neg_invariant
+#print axioms WeakSimplex.symmetricRectangle_ge_iid
+#print axioms WeakSimplex.symmetricRectangle_gt_iid_of_ne_one
+#print axioms WeakSimplex.symmetricRectangle_eq_iid_iff
 #print axioms WeakSimplex.symmetricRectangle_ge_iid_of_posDef
 #print axioms WeakSimplex.even_logConcave_product_of_posDef
 #print axioms WeakSimplex.measurable_normalizedSelfConvolution
@@ -49,6 +68,8 @@ output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 #print axioms WeakSimplex.variance_id_normalizedSelfConvolution
 #print axioms WeakSimplex.map_multivariateGaussian_sumDifference_eq_prod
 #print axioms WeakSimplex.normalizedSelfConvolution_product_deficit_of_posDef
+#print axioms WeakSimplex.integral_integral_sumDifferenceProduct_eq_sq
+#print axioms WeakSimplex.centeredTiltedHalfLine_product_lt_of_ne_one
 #print axioms WeakSimplex.measurable_iteratedNormalizedSelfConvolution
 #print axioms WeakSimplex.iteratedNormalizedSelfConvolution_nonneg
 #print axioms WeakSimplex.isBounded_range_iteratedNormalizedSelfConvolution
@@ -66,17 +87,32 @@ output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 #print axioms
   WeakSimplex.exists_eventual_pos_lower_bound_integral_iteratedNormalizedSelfConvolution
 #print axioms WeakSimplex.centered_product_of_posDef
+#print axioms WeakSimplex.centered_product_of_continuous
 #print axioms WeakSimplex.lowerOrthant_ge_iid_of_posDef
+#print axioms WeakSimplex.map_gaussianRegularization_eq_multivariateGaussian
+#print axioms WeakSimplex.tendstoInDistribution_regularized_multivariateGaussian
+#print axioms WeakSimplex.regularizedCovariance_posDef
+#print axioms WeakSimplex.regularizedCovariance_isCorrelation
+#print axioms WeakSimplex.regularizedCovariance_isWeakSimplexCov
 #print axioms WeakSimplex.lowerOrthant_ge_iid
+#print axioms WeakSimplex.multivariateGaussian_one_lowerOrthant
+#print axioms WeakSimplex.lowerOrthant_gt_iid_of_ne_one
+#print axioms WeakSimplex.lowerOrthant_eq_iid_iff
 #print axioms WeakSimplex.coordinateMax
 #print axioms WeakSimplex.continuous_coordinateMax
 #print axioms WeakSimplex.coordinateMax_le_iff_mem_lowerOrthant
 #print axioms WeakSimplex.coordinateMax_tail_le_iid
 #print axioms WeakSimplex.gaussianMax_mgf_le_regularSimplex
+#print axioms WeakSimplex.coordinateMax_tail_lt_iid_of_ne_one
+#print axioms WeakSimplex.gaussianMax_mgf_lt_regularSimplex
+#print axioms WeakSimplex.gaussianMax_mgf_eq_regularSimplex_iff
 #print axioms WeakSimplex.regularSimplexGram
 #print axioms WeakSimplex.gramNormalization
+#print axioms WeakSimplex.gramNormalization_eq_one_iff
 #print axioms WeakSimplex.gramMgf_normalization_identity
 #print axioms WeakSimplex.gramGaussianMax_mgf_le_regularSimplex
+#print axioms WeakSimplex.gramGaussianMax_mgf_lt_regularSimplex
+#print axioms WeakSimplex.gramGaussianMax_mgf_eq_regularSimplex_iff
 #print axioms WeakSimplex.codeGram
 #print axioms WeakSimplex.codeGram_posSemidef
 #print axioms WeakSimplex.codeGram_isCorrelation
@@ -106,5 +142,11 @@ output for every command is exactly `[propext, Classical.choice, Quot.sound]`.
 #print axioms WeakSimplex.regularSimplexBayesValue
 #print axioms WeakSimplex.bayesValue_eq_regularSimplexBayesValue_of_codeGram
 #print axioms WeakSimplex.bayesValue_le_regularSimplex
+#print axioms WeakSimplex.bayesValue_lt_regularSimplex
+#print axioms WeakSimplex.bayesValue_eq_regularSimplex_iff
 #print axioms WeakSimplex.weak_simplex
+#print axioms WeakSimplex.weak_simplex_strict
+#print axioms WeakSimplex.weak_simplex_eq_iff_codeGram_eq
 #print axioms WeakSimplex.weak_simplex_of_scoreMaximizingDecoders
+#print axioms WeakSimplex.weak_simplex_strict_of_scoreMaximizingDecoders
+#print axioms WeakSimplex.weak_simplex_eq_iff_codeGram_eq_of_scoreMaximizingDecoders

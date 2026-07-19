@@ -145,6 +145,59 @@ lemma H_deriv_pos (s : ℝ) :
   rw [centered_sq_integral] at hpos
   nlinarith [normalCDF_pos s]
 
+private lemma integrable_gap_mul_normalPDF (s : ℝ) :
+    Integrable (fun x : ℝ ↦ (s - x) * normalPDF x) := by
+  have hdiff : Integrable (fun x : ℝ ↦ s * normalPDF x - x * normalPDF x) :=
+    (integrable_normalPDF.const_mul s).sub integrable_mul_normalPDF
+  exact hdiff.congr (ae_of_all _ fun x ↦ by ring)
+
+private lemma gap_integral_pos (s : ℝ) :
+    0 < ∫ x in Set.Iic s, (s - x) * normalPDF x := by
+  apply (setIntegral_pos_iff_support_of_nonneg_ae
+    ((ae_restrict_mem measurableSet_Iic).mono fun x hx ↦
+      mul_nonneg (sub_nonneg.mpr hx) (normalPDF_pos x).le)
+    (integrable_gap_mul_normalPDF s).integrableOn).2
+  rw [show Function.support (fun x : ℝ ↦ (s - x) * normalPDF x) =
+      {x | x ≠ s} by
+    ext x
+    simp only [Function.mem_support, Set.mem_setOf_eq]
+    constructor
+    · intro h hx
+      apply h
+      rw [hx]
+      norm_num
+    · intro hx
+      exact mul_ne_zero (sub_ne_zero.mpr hx.symm) (normalPDF_pos x).ne']
+  rw [show {x : ℝ | x ≠ s} ∩ Set.Iic s = Set.Iio s by
+    ext x
+    simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Iic, Set.mem_Iio]
+    constructor
+    · rintro ⟨hx, hxs⟩
+      exact lt_of_le_of_ne hxs hx
+    · intro hxs
+      exact ⟨hxs.ne, hxs.le⟩]
+  rw [Real.volume_Iio]
+  exact ENNReal.zero_lt_top
+
+lemma H_pos (s : ℝ) : 0 < H s := by
+  have hpos := gap_integral_pos s
+  have hfirst : IntegrableOn (fun x : ℝ ↦ s * normalPDF x) (Set.Iic s) :=
+    (integrable_normalPDF.const_mul s).integrableOn
+  have hsecond : IntegrableOn (fun x : ℝ ↦ x * normalPDF x) (Set.Iic s) :=
+    integrable_mul_normalPDF.integrableOn
+  rw [show (fun x : ℝ ↦ (s - x) * normalPDF x) =
+      fun x ↦ s * normalPDF x - x * normalPDF x by
+    funext x
+    ring,
+    integral_sub hfirst hsecond, integral_const_mul, truncated_first_moment] at hpos
+  change 0 < s * normalCDF s - -normalPDF s at hpos
+  have hpdf : normalPDF s = r s * normalCDF s := by
+    rw [r]
+    field_simp [(normalCDF_pos s).ne']
+  rw [hpdf] at hpos
+  simp only [H]
+  nlinarith [normalCDF_pos s]
+
 lemma hasDerivAt_localLogMass (s : ℝ) :
     HasDerivAt localLogMass
       (r s * (1 - s * r s - (r s) ^ 2)) s := by

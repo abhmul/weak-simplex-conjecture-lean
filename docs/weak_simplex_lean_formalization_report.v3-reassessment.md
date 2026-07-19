@@ -11,6 +11,10 @@
 
 ---
 
+## Scoped extensions
+
+This report governs the completed non-strict formalization. [`weak_simplex_lean_uniqueness_formalization_plan.v1.md`](weak_simplex_lean_uniqueness_formalization_plan.v1.md) governs the additive strictness and uniqueness work. It supersedes the singular-covariance restrictions here only for the explicitly named rigidity modules and preserves every existing public theorem statement.
+
 ## 0. Purpose and bottom-line recommendation
 
 This report re-evaluates the earlier formalization plan against the v3 proof, the associated paper, the exact Lean 4.31.0/mathlib project state, the repository-local `.agents/skills/lean4` workflow, and available third-party Lean developments.

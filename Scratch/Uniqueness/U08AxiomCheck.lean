@@ -1,0 +1,4 @@
+import WeakSimplexConjectureLean.Rigidity.TiltedHalfLineProduct
+
+#print axioms WeakSimplex.integral_integral_sumDifferenceProduct_eq_sq
+#print axioms WeakSimplex.centeredTiltedHalfLine_product_lt_of_ne_one
